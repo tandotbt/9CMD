@@ -27,7 +27,7 @@ if not [%_ncgCuaA%] == [] (timeout 3 && goto :SoLuong) else (echo Lỗi 1: Ví A
 :SoLuong
 call :Background
 echo.[1]Sử dụng node        : %_node%			NCG		CRYSTAL
-echo.echo.[2]Ví người gửi (A)    : %_viA:~0,7%***		%_ncgCuaA%		%_crystalCuaA%
+echo.[2]Ví người gửi (A)    : %_viA:~0,7%***		%_ncgCuaA%		%_crystalCuaA%
 echo ==========
 echo Nhập loại tiền tệ và số lượng bạn muốn gửi đi
 echo.
