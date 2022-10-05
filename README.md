@@ -6,6 +6,7 @@ TOoL cHo CHín cÊ
 Hỗ trợ:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
 - Hầu hết là tiếng Việt, tiếng Anh coming sôn...
+- Windows 64bit
 
 ==========
 9CMD tạo bởi tanbt#9827
