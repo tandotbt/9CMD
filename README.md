@@ -23,5 +23,3 @@ Gửi tôi cốc crystal qua ví ☕ 0x6374FE5F54CdeD72Ff334d09980270c61BC95186 
 
 ==========
 From Việt Nam 🇻🇳, ưhit love!
-
-
