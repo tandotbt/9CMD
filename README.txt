@@ -14,7 +14,7 @@ Hỗ trợ:
 ==========
 Sửa lỗi v0.2:
 - Xóa chữ echo. do trước quên chưa xóa :")
-- Làm tròn giá trị số dư để không còn Lỗi 3 khi thực tế đã nhập đúng
+- Làm tròn giá trị số dư để không còn Lỗi 3 nhập Số lượng khi thực tế đã nhập đúng
 
 ==========
 9CMD tạo bởi tanbt#9827
