@@ -1,0 +1,4 @@
+ACTION = "_unsignedTransaction"
+
+with open('action' , 'wb') as f:
+  f.write(bytes.fromhex(ACTION))

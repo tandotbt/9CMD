@@ -1,0 +1,1 @@
+{"query":"query{transaction{unsignedTransaction(publicKey:\"_PublicKeyCuaA\",plainValue:\"_transferAsset\",nonce:_nextTxNonce)}}"}

@@ -1,0 +1,1 @@
+{"query":"query{actionQuery{transferAsset(sender:\"_viA\",recipient:\"_viB\",currency: _currency,amount: \"_soLuong\")}transaction{nextTxNonce(address:\"_viA\")}}"}
