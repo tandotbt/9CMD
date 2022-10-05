@@ -37,6 +37,9 @@ call %_cd%\batch\KTraSoDuCuaA.bat
 rem Ghi giá trị của A
 set /p _crystalCuaA=<%_cd%\data\_crystal.txt
 set /p _ncgCuaA=<%_cd%\data\_ncg.txt
+rem Xóa số sau dấu .
+set /a "_ncgCuaA=%_ncgCuaA%"
+set /a "_crystalCuaA=%_crystalCuaA%"
 goto :KTraViA
 :NhapViB
 rem Nhập đầu vào B
@@ -173,6 +176,11 @@ set _soLuong=%_soLuong: =%
 set _currency=%_currency: =%
 set _PublicKeyCuaA=%_PublicKeyCuaA: =%
 set _YorN=%_YorN: =%
+rem Làm tròn số NCG và Crystal
+set /a "_ncgCuaA=%_ncgCuaA%"
+set /a "_ncgCuaB=%_ncgCuaB%"
+set /a "_crystalCuaA=%_crystalCuaA%"
+set /a "_crystalCuaB=%_crystalCuaB%"
 rem Làm màu cho đẹp :v
 call :background
 if %_currency% == NCG (color 06 &&  goto :Makecolor)
@@ -311,6 +319,6 @@ if defined var (set /a _ktra=0) else (set /a _ktra=1)
 if "%_ktra%" == "1" (goto :KTraSoLuong3) else (echo Lỗi 2: Số lượng không phải dạng số, thử lại... && color 4F && timeout 3 && goto :ChonLoaiTienTe)
 rem Kiểm tra có nhỏ hơn số dư hay không
 :KTraSoLuong3
-if %_currency% == NCG (if "%_soLuong%" gtr "%_ncgCuaA%" (set /a _ktra=0))
-if %_currency% == CRYSTAL (if "%_soLuong%" gtr "%_crystalCuaA%" (set /a _ktra=0))
+if %_currency% == NCG (if %_soLuong% gtr %_ncgCuaA% (set /a _ktra=0))
+if %_currency% == CRYSTAL (if %_soLuong% gtr %_crystalCuaA% (set /a _ktra=0))
 if "%_ktra%" == "1" (goto :SoLuongOK) else (echo Lỗi 3: Số lượng vượt quá số dư, thử lại... && color 4F && timeout 3 && goto :ChonLoaiTienTe)
