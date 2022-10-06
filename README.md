@@ -3,20 +3,25 @@ TOoL cHo CHín cÊ
 
 ==========
 
+Hỗ trợ:
+- Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
+- Hầu hết là tiếng Việt, tiếng Anh coming sôn...
+
+==========
+
+Yêu cầu:
+- Windows 64bit
+- Đã cài đặt Python tại https://www.python.org/downloads/
+
+==========
+
 Sử dụng:
 - Chạy file 9CMD.bat đầu tiên, nhấn số từ bàn phím để tiếp tục...
 
 ==========
 
-Hỗ trợ:
-- Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
-- Hầu hết là tiếng Việt, tiếng Anh coming sôn...
-- Windows 64bit
-
-==========
-
 Sửa lỗi v0.2:
-- Xóa chữ echo. do trước quên chưa xóa :")
+- Xóa echo. thừa
 - Làm tròn giá trị số dư để không còn Lỗi 3 nhập Số lượng khi thực tế đã nhập đúng
 
 ==========
@@ -27,7 +32,7 @@ Công cụ có sử dụng JQ bản 64bit để đọc file Json tại https://s
 
 Planet 0.42.2 win x64 tại https://github.com/planetarium/libplanet/releases
 
-Vài đoạn mã lấy trên mạng như gõ mật khẩu ẩn, lấy dữ liệu từ kết quả của mã trước đó,... đã được xem qua và có vẻ an toàn 👍
+Vài đoạn mã lấy trên mạng như gõ mật khẩu ẩn, lấy dữ liệu từ kết quả của mã trước,... đã được xem qua và có vẻ an toàn 👍
 
 Theo dõi kênh Youtube của tôi để biết thêm vài mẹo hữu ích cho Nine Chronicles tại https://www.youtube.com/c/tanbt
 

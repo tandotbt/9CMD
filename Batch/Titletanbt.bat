@@ -1,4 +1,4 @@
-mode con:cols=100 lines=30
+mode con:cols=150 lines=70
 color 0B
 rem Cài tiếng Việt Nam
 chcp 65001
