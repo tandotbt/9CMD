@@ -59,7 +59,7 @@ rem In ra màn hình thông tin
 call :background
 echo.[1]Sử dụng node        : %_node%			NCG		CRYSTAL
 echo.[2]Ví người gửi (A)    : %_viA:~0,7%***		%_ncgCuaA%		%_crystalCuaA%
-echo.[3]Ví người gửi (B)    : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
+echo.[3]Ví người nhận (B)   : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
 if "%_hienInputPass%"=="1" (goto :inputpassword) else (goto :KTraNode1)
 :inputpassword
 set /a _hienInputPass=0
@@ -72,7 +72,7 @@ rem Chọn loại tiền tệ và số lượng
 call :background
 echo.[1]Sử dụng node        : %_node%			NCG		CRYSTAL
 echo.[2]Ví người gửi (A)    : %_viA:~0,7%***		%_ncgCuaA%		%_crystalCuaA%
-echo.[3]Ví người gửi (B)    : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
+echo.[3]Ví người nhận (B)   : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
 echo ==========
 rem Chọn loại tiền tệ
 choice /c 12 /n /m "Gửi [1]NCG hoặc [2]Crystal: "
@@ -89,7 +89,7 @@ rem Bắt đầu gửi
 call :background
 echo.[1]Sử dụng node        : %_node%			NCG		CRYSTAL
 echo.[2]Ví người gửi (A)    : %_viA:~0,7%***		%_ncgCuaA%		%_crystalCuaA%
-echo.[3]Ví người gửi (B)    : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
+echo.[3]Ví người nhận (B)   : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
 echo.[4]Gửi                 : %_soLuong% %_currency%
 echo ==========
 choice /c 12 /n /m "Nhập Public key ví (A):[1]9cscan [2]Planet"
@@ -111,7 +111,7 @@ set /p _PublicKeyCuaA="Dán Public key của A tại đây: "
 if %_PublicKeyCuaA% == waybackhome goto :SoLuongOK
 echo %_PublicKeyCuaA% > %_cd%\user\_PublicKeyCuaA.txt
 echo ==========
-echo Lấy Publick Key của ví (A) thành công
+echo Lấy Public Key của ví (A) thành công
 echo.
 rem Đặt biến _IDKeyCuaA về 0 để lệnh lấy signaturePlanet quay lại kiểm tra
 set _IDKeyCuaA=0
@@ -130,26 +130,23 @@ echo.
 call :background
 rem Nhận biến
 set /p _YorN=<%_cd%\PASSWORD\_YorN.txt
-set /p _exit9cmd=<%_cd%\data\_exit9cmd.txt
 set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
 rem Xóa khoảng trắng
 set _YorN=%_YorN: =%
-set _exit9cmd=%_exit9cmd: =%
 set _IDKeyCuaA=%_IDKeyCuaA: =%
-rem Nếu không có file UTC, chương trình sẽ thoát
-if "%_exit9cmd%"=="1" (set _exit9cmd=0 && echo %_exit9cmd% > %_cd%\data\_exit9cmd.txt && call :background && call %_cd%\batch\end9cmd.bat "Không thể tìm thấy file UTC, thoát chương trình sau 10s..." 10 && exit)
 rem Lấy Publick key bằng Planet
 call %_cd%\batch\LayPublicKeyPlanet.bat
+set "_password="
 rem Quay lại 9cscanPublickey
 set /p _password=<%_cd%\PASSWORD\_PASSWORD.txt
 if %_password% == waybackhome goto :SoLuongOK
-set "_password="
 rem Xóa file _KTraPPK.txt trong Planet
 del /q %_cd%\planet\_KTraPPK.txt
 rem Nhận Public Key
 echo ==========
 echo Lấy Public Key của ví (A) thành công
 echo.
+timeout 3
 goto :miniSendCurrency
 :miniSendCurrency
 rem Nhận dữ liệu
@@ -162,6 +159,7 @@ set /p _crystalCuaA=<%_cd%\data\_crystal.txt
 set /p _crystalCuaB=<%_cd%\data\_crystalB.txt
 set /p _soLuong=<%_cd%\data\_soLuong.txt
 set /p _currency=<%_cd%\data\_currency.txt
+set /p _memo=<%_cd%\data\_memo.txt
 set /p _PublicKeyCuaA=<%_cd%\user\_PublicKeyCuaA.txt
 set /p _YorN=<%_cd%\PASSWORD\_YorN.txt
 rem Xóa khoảng trắng
@@ -174,6 +172,7 @@ set _crystalCuaA=%_crystalCuaA: =%
 set _crystalCuaB=%_crystalCuaB: =%
 set _soLuong=%_soLuong: =%
 set _currency=%_currency: =%
+set _memo=%_memo: =%
 set _PublicKeyCuaA=%_PublicKeyCuaA: =%
 set _YorN=%_YorN: =%
 rem Làm tròn số NCG và Crystal
@@ -184,22 +183,22 @@ set /a "_crystalCuaB=%_crystalCuaB%"
 rem Làm màu cho đẹp :v
 call :background
 if %_currency% == NCG (color 06 &&  goto :Makecolor)
-if %_currency% == CRYSTAL (color 05 && goto :Makecolor)
+if %_currency% == CRYSTAL (color 0D && goto :Makecolor)
 :Makecolor
-echo Lưu ý: Những dữ liệu này có thể đã cũ hoặc chưa đúng thực tế
 echo ==========
 echo.[1]Sử dụng node        : %_node%			NCG		CRYSTAL
 echo.[2]Ví người gửi (A)    : %_viA:~0,7%***		%_ncgCuaA%		%_crystalCuaA%
-echo.[3]Ví người gửi (B)    : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
+echo.[3]Ví người nhận (B)   : %_viB:~0,7%***		%_ncgCuaB%		%_crystalCuaB%
 echo.[4]Gửi                 : %_soLuong% %_currency%
 echo.[5]Public Key của (A)  : %_PublicKeyCuaA:~0,10%***
-if "%_YorN%"=="1" echo.[6]Lưu PASSWORD ví (A) : [X]
-if "%_YorN%"=="0" echo.[6]Lưu PASSWORD ví (A) : [ ]
+echo.[6]Lời nhắn đi kèm     : %_memo%_9CMD_TooL
+if "%_YorN%"=="1" echo.[7]Lưu PASSWORD ví (A) : [X]
+if "%_YorN%"=="0" echo.[7]Lưu PASSWORD ví (A) : [ ]
 echo ==========
 rem Reset _chinhSua
 set /p _chinhSua=<%_cd%\data\_null.txt
 set /p _chinhSua="Nhập [0] để gửi ngay, hoặc nhập [số] để cập nhật: "
-rem Định dạng lại _chinhSua
+rem Định dạng lại _chinhSua về 1 số
 set _chinhSua=%_chinhSua: =%
 set _chinhSua=%_chinhSua:~-1%
 rem Kiểm tra _chinhSua có là số hay không
@@ -207,13 +206,14 @@ cd %_cd%
 set "var="&for /f "delims=0123456789" %%i in ("%_chinhSua%") do set var=%%i
 if defined var (echo Lỗi 1: Sai cú pháp, thử lại... && color 4F && timeout 3 && goto :miniSendCurrency)
 if "%_chinhSua%"=="0" (goto :BatDauGui)
-if "%_chinhSua%"=="1" (call %_cd%\batch\miniChonNode.bat && goto :miniSendCurrency)
-if "%_chinhSua%"=="2" (call %_cd%\batch\miniNhapViA.bat && goto :miniSendCurrency)
-if "%_chinhSua%"=="3" (call %_cd%\batch\miniNhapViB.bat && goto :miniSendCurrency)
-if "%_chinhSua%"=="4" (call %_cd%\batch\miniSoLuong.bat && goto :miniSendCurrency)
-if "%_chinhSua%"=="5" (call %_cd%\batch\miniPublicKey.bat && goto :miniSendCurrency)
-if "%_chinhSua%"=="6" (call %_cd%\batch\PASSWORD.bat && goto :miniSendCurrency)
-if "%_chinhSua%" gtr "6" (echo Lỗi 2: Giá trị vượt quá [6], thử lại... && color 4F && timeout 10 && goto :miniSendCurrency)
+if "%_chinhSua%"=="1" (call %_cd%\batch\miniChonNode.bat && set "_chinhSua=" && goto :miniSendCurrency)
+if "%_chinhSua%"=="2" (call %_cd%\batch\miniNhapViA.bat && set "_chinhSua=" && goto :miniSendCurrency)
+if "%_chinhSua%"=="3" (call %_cd%\batch\miniNhapViB.bat && set "_chinhSua=" && goto :miniSendCurrency)
+if "%_chinhSua%"=="4" (call %_cd%\batch\miniSoLuong.bat && set "_chinhSua=" && goto :miniSendCurrency)
+if "%_chinhSua%"=="5" (call %_cd%\batch\miniPublicKey.bat && set "_chinhSua=" && goto :miniSendCurrency)
+if "%_chinhSua%"=="6" (call %_cd%\batch\miniMemo.bat && set "_chinhSua=" && goto :miniSendCurrency)
+if "%_chinhSua%"=="7" (call %_cd%\batch\PASSWORD.bat && set "_chinhSua=" && goto :miniSendCurrency)
+if "%_chinhSua%" gtr "7" (echo Lỗi 2: Giá trị vượt quá [7], thử lại... && color 4F && timeout 10 && goto :miniSendCurrency)
 :BatDauGui
 rem Bắt đầu gửi giao dịch
 call :Background
@@ -241,7 +241,8 @@ if %_txStatus% == INVALID (echo Trạng thái: NOT FOUND && color 8F && goto :en
 if %_txStatus% == STAGING (echo Trạng thái: STAGING && color 0B && goto :endKtraGDGraphQL)
 if %_txStatus% == SUCCESS (echo Trạng thái: SUCCESS && color 2F && goto :endKtraGDGraphQL)
 if %_txStatus% == FAILURE (echo Trạng thái: FAILURE && color 4F && goto :endKtraGDGraphQL)
-echo Lỗi 1: Lỗi không xác định, thử lại... && color 4F && timeout 5 && goto :endKtraGDGraphQL
+echo Lỗi 1: Lỗi không xác định, vào game và làm gì đó sau đó thử gửi lại... && color 4F && timeout 10 && goto :endKtraGDGraphQL
+goto :miniSendCurrency
 :endKtraGDGraphQL
 echo.
 echo ==========

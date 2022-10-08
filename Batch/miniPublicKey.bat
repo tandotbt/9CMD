@@ -9,7 +9,6 @@ rem Sử dụng 9cscan hay Planet
 echo ==========
 echo [1]Sử dụng 9cscan
 echo [2]Sử dụng Planet
-echo ==========
 echo.
 choice /c 12 /n /m "Nhập từ bàn phím: "
 if %errorlevel% equ 1 (goto :9cscanPublicKey)
@@ -30,7 +29,7 @@ set /p _PublicKeyCuaA="Dán Public key của A tại đây: "
 if %_PublicKeyCuaA% == waybackhome goto :PPK
 echo %_PublicKeyCuaA% > %_cd%\user\_PublicKeyCuaA.txt
 echo ==========
-echo Lấy Publick Key của ví (A) thành công
+echo Lấy Public Key của ví (A) thành công
 echo.
 rem Đặt biến _IDKeyCuaA về 0 để lệnh lấy signaturePlanet quay lại kiểm tra
 set _IDKeyCuaA=0
@@ -59,14 +58,10 @@ echo.
 call :background
 rem Nhận biến
 set /p _YorN=<%_cd%\PASSWORD\_YorN.txt
-set /p _exit9cmd=<%_cd%\data\_exit9cmd.txt
 set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
 rem Xóa khoảng trắng
 set _YorN=%_YorN: =%
-set _exit9cmd=%_exit9cmd: =%
 set _IDKeyCuaA=%_IDKeyCuaA: =%
-rem Nếu không có file UTC, chương trình sẽ thoát
-if "%_exit9cmd%"=="1" (set _exit9cmd=0 && echo %_exit9cmd% > %_cd%\data\_exit9cmd.txt && call :background && call %_cd%\batch\end9cmd.bat "Không thể tìm thấy file UTC, thoát chương trình sau 10s..." 10 && exit)
 rem Lấy Publick key bằng Planet
 call %_cd%\batch\LayPublicKeyPlanet.bat
 set "_password="

@@ -58,7 +58,7 @@ set /p _PublicKeyCuaA="Dán Public key của A tại đây: "
 if %_PublicKeyCuaA% == waybackhome goto :PPK
 echo %_PublicKeyCuaA% > %_cd%\user\_PublicKeyCuaA.txt
 echo ==========
-echo Lấy Publick Key của ví (A) thành công
+echo Lấy Public Key của ví (A) thành công
 echo.
 rem Đặt biến _IDKeyCuaA về 0 để lệnh lấy ignaturePlanet quay lại kiểm tra
 set _IDKeyCuaA=0
@@ -82,26 +82,23 @@ echo.
 call :background
 rem Nhận biến
 set /p _YorN=<%_cd%\PASSWORD\_YorN.txt
-set /p _exit9cmd=<%_cd%\data\_exit9cmd.txt
 set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
 rem Xóa khoảng trắng
 set _YorN=%_YorN: =%
-set _exit9cmd=%_exit9cmd: =%
 set _IDKeyCuaA=%_IDKeyCuaA: =%
-rem Nếu không có file UTC, chương trình sẽ thoát
-if "%_exit9cmd%"=="1" (set _exit9cmd=0 && echo %_exit9cmd% > %_cd%\data\_exit9cmd.txt && call :background && call %_cd%\batch\end9cmd.bat "Không thể tìm thấy file UTC, thoát chương trình sau 10s..." 10 && exit)
 rem Lấy Publick key bằng Planet
 call %_cd%\batch\LayPublicKeyPlanet.bat
+set "_password="
 rem Quay lại 9cscanPublickey
 set /p _password=<%_cd%\PASSWORD\_PASSWORD.txt
 if %_password% == waybackhome goto :SoLuongOK
-set "_password="
 rem Xóa file _KTraPPK.txt trong Planet
 del /q %_cd%\planet\_KTraPPK.txt
 rem Nhận Public Key
 echo ==========
 echo Lấy Public Key của ví (A) thành công
 echo.
+timeout 3
 exit /b
 :Background
 cls

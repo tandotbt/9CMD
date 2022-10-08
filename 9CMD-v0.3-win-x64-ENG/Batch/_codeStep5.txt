@@ -1,0 +1,1 @@
+{"query":"query{transaction{transactionResult(txId:\"_stageTransaction\"){txStatus}}}"}

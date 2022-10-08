@@ -43,9 +43,8 @@ rem Lọc kết quả lấy dữ liệu
 echo ==========
 echo Tìm signTransaction...
 echo.
-cd %_cd%\batch
 call %_cd%\batch\ReadJson.bat signTransaction output.json
-call %_cd%\batch\XoaNhay.bat
+call %_cd%\batch\XoaNhay2.bat
 copy %_cd%\user\_Output.txt %_cd%\user\_signTransaction.txt
 rem Xóa file nháp input và output
 cd %_cd%\batch

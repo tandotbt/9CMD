@@ -9,11 +9,17 @@ rem Xóa khoảng trắng
 set _IDKeyCuaA=%_IDKeyCuaA: =%
 set _YorN=%_YorN: =%
 set _PASSWORD=%_PASSWORD: =%
+rem Kiểm tra đã lấy Key ID của ví (A) chưa
+set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
+set _IDKeyCuaA=%_IDKeyCuaA: =%
+if "%_IDKeyCuaA%" == "0" (call %_cd%\batch\LayIDKeyCuaA.bat)
 if "%_YorN%" == "0" (goto :tryagainWithPass) else (goto :tryagainNoPass)
 :tryagainWithPass
 call :background
 set _password=1
 set _ktra=0
+set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
+set _IDKeyCuaA=%_IDKeyCuaA: =%
 echo Tùy chọn: nhập "waybackhome" để quay lại
 echo Nhập mật khẩu thủ công: 
 echo Lưu ý: Tắt unikey trước khi nhập
@@ -45,7 +51,7 @@ set /p _KTraPPK=<%_cd%\planet\_KTraPPK.txt
 if [%_KTraPPK%] == [] (echo Lỗi 1: Mật khẩu cài trong file PASSWORD chưa đúng, thử lại... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesPPK)
 :KTraPPK2
 set /p _KTraPPK=<%_cd%\planet\_KTraPPK.txt
-if [%_KTraPPK%] == [] (echo Lỗi 2: Nhập sai mật khẩu, thử lại... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesPPK)
+if [%_KTraPPK%] == [] (echo Lỗi 2: Nhập sai mật khẩu, thử lại... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && echo 0 > %_cd%\PASSWORD\_PASSWORD.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesPPK)
 
 :YesPPK
 cd %_cd%
@@ -54,7 +60,7 @@ echo ==========
 echo Nhập Public Key của (A) bằng Planet
 echo.
 echo ==========
-echo Nhập Publick Key của (A) thành công
+echo Nhập Public Key của (A) thành công
 echo %_KTraPPK% > %_cd%\user\_PublicKeyCuaA.txt
 exit /b
 :background

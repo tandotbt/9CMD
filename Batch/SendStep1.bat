@@ -17,6 +17,7 @@ set /p _viB=<%_cd%\user\_viB.txt
 set /p _soLuong=<%_cd%\data\_soLuong.txt
 set /p _currency=<%_cd%\data\_currency.txt
 set /p _PublicKeyCuaA=<%_cd%\user\_PublicKeyCuaA.txt
+set /p _memo=<%_cd%\data\_memo.txt
 rem Xóa khoảng trắng
 set _node=%_node: =%
 set _viA=%_viA: =%
@@ -24,12 +25,14 @@ set _viB=%_viB: =%
 set _soLuong=%_soLuong: =%
 set _currency=%_currency: =%
 set _PublicKeyCuaA=%_PublicKeyCuaA: =%
+set _memo=%_memo: =%
 rem Gán biến vào code
 cd %_cd%\batch
 call %_cd%\batch\TaoInputJson.bat _viA %_viA% _codeStep1.txt > input1.json
 call %_cd%\batch\TaoInputJson.bat _viB %_viB% input1.json > input2.json
 call %_cd%\batch\TaoInputJson.bat _soLuong %_soLuong% input2.json > input3.json
-call %_cd%\batch\TaoInputJson.bat _currency %_currency% input3.json > input.json
+call %_cd%\batch\TaoInputJson.bat _currency %_currency% input3.json > input4.json
+call %_cd%\batch\TaoInputJson.bat _memo %_memo%_9CMD_TooL input4.json > input.json
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Lọc kết quả lấy dữ liệu

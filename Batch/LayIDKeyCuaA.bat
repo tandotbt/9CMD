@@ -11,12 +11,13 @@ cd %_cd%\planet
 planet key > _allKey.txt
 sort _allKey.txt
 findstr /L %_viA% _allKey.txt >_IDKeyCuaA.txt
+set "_IDKeyCuaA="
 set /p _IDKeyCuaA=<_IDKeyCuaA.txt
 rem Kiểm tra ID Key
 echo ==========
 echo Kiểm tra Key ID
 echo.
-If "%_IDKeyCuaA%" NEQ "" (goto :YesUTC) else (goto :NoUTC)
+if not "%_IDKeyCuaA%" == "" (goto :YesUTC) else (goto :NoUTC)
 
 :tryagain
 cls
@@ -30,10 +31,14 @@ echo Đang lấy Key ID của (A), chờ một chút...
 cd %_cd%\planet
 planet key > _allKey.txt
 sort _allKey.txt
-findstr %_viA% _allKey.txt>_IDKeyCuaA.txt
+findstr /L %_viA% _allKey.txt >_IDKeyCuaA.txt
+set "_IDKeyCuaA="
 set /p _IDKeyCuaA=<_IDKeyCuaA.txt
-If "%_IDKeyCuaA%" NEQ "" (goto :YesUTC) else (goto :NoUTC)
-
+rem Kiểm tra ID Key
+echo ==========
+echo Kiểm tra Key ID
+echo.
+if not "%_IDKeyCuaA%" == "" (goto :YesUTC) else (goto :NoUTC)
 
 :NoUTC
 echo ==========
@@ -55,16 +60,19 @@ echo [3]Thoát tool
 choice /c 123 /n /m "Nhập từ bàn phím..."
 if %errorlevel% equ 1 (goto :tryagain)
 if %errorlevel% equ 2 (color 0B && call %_cd%\batch\miniNhapViA.bat && exit /b)
-if %errorlevel% equ 3 (echo 1 > %_cd%\data\_exit9cmd.txt && exit /b)
+if %errorlevel% equ 3 (call :background && call %_cd%\batch\end9cmd.bat "Không thể tìm thấy file UTC, thoát chương trình sau 10s..." 10 && exit)
 
 :YesUTC
 echo ==========
 echo Lấy Key ID của ví (A) thành công
 echo.
 echo %_IDKeyCuaA:~0,36% > %_cd%\user\_IDKeyCuaA.txt
-echo 0 > %_cd%\data\_exit9cmd.txt
 rem Xóa file txt trong planet
 del *.txt
 copy "%_cd%\data\_cd.txt" "%_cd%\planet\_cd.txt"
-timeout 10
-goto :eof
+timeout 3
+:Background
+cls
+cd %_cd%
+call %_cd%\Batch\TitleSendCurrency.bat
+exit /b

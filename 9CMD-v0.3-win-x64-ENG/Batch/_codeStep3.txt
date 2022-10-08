@@ -1,0 +1,1 @@
+{"query":"query{transaction{signTransaction(unsignedTransaction:\"_unsignedTransaction\",signature:\"_signature\")}}"}
