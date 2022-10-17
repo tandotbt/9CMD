@@ -3,6 +3,10 @@ TOoL cHo CHín cÊ
 
 ==========
 
+Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
+
+==========
+
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
 
