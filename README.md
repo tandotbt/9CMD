@@ -3,7 +3,9 @@ TOoL cHo CHín cÊ
 
 ==========
 
-Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
+Sử dụng:
+- Chạy file 9CMD.bat đầu tiên, nhấn số từ bàn phím để tiếp tục...
+- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
 ==========
 
@@ -18,17 +20,9 @@ Yêu cầu:
 
 ==========
 
-Sử dụng:
-- Chạy file 9CMD.bat đầu tiên, nhấn số từ bàn phím để tiếp tục...
-
-==========
-
-Sửa lỗi v0.3.1:
-- Sửa lỗi nhập Memo rỗng nhấn Enter sẽ gửi luôn thay vì quay lại
-- Tạo file action bằng batch thay vì dùng python
-- Bỏ SendStep5.bat ở cuối SendStep4.bat
-- Tự động Lấy PublicKey của (A) bằng 9cscan
-- Tối ưu code
+Sửa lỗi v0.3.2:
+- Sửa lỗi nhập waybackhome ở bước Lấy Signture thay vì quay lại thì crash
+- Sửa lỗi lưu Password đúng nhưng vẫn báo sai bước Get Signture
 
 ==========
 
@@ -57,6 +51,12 @@ TOoL fOR nINe CHrOnicleS
 
 ==========
 
+How to use:
+- Run first 9cmd.bat file, press number from the keyboard to continue...
+- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
+
+==========
+
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
 
@@ -64,21 +64,13 @@ Feature:
 
 Request:
 - Windows 64bit
-- No need to install Python
+- <s>Installed Python at https://www.python.org/downloads/</s> No need to install Python
 
 ==========
 
-How to use:
-- Run first 9cmd.bat file, press number from the keyboard to continue...
-
-==========
-
-Fixes v0.3.1:
-- Fix the empty memo to enter Enter will always send instead of coming back
-- Create an action file with batch instead of using python
-- Remove SendStep5.bat at the end of SendStep4.bat
-- Automatically get PublicKey of (A) by 9cscan
-- Code optimization
+Fixes v0.3.2:
+- Fix enter waybackhome in step Get Signture instead of come back, tool will crash
+- Fix save right password but still report wrong step Get Signture
 
 ==========
 
