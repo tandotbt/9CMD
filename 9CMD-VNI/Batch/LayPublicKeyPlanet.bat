@@ -39,6 +39,9 @@ set "_PASSWORD="
 goto :KTraPPK2
 :tryagainNoPass
 call :background
+rem Lấy lại _IDKeyCuaA
+set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
+set _IDKeyCuaA=%_IDKeyCuaA: =%
 echo Sử dụng mật khẩu đã lưu từ thư mục PASSWORD
 cd %_cd%\planet
 set _PublicKeyCuaA=^|planet key export --passphrase %_PASSWORD% --public-key %_IDKeyCuaA%

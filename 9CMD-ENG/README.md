@@ -10,7 +10,6 @@ Feature:
 
 Request:
 - Windows 64bit
-- No need to install Python
 
 ==========
 
@@ -19,12 +18,9 @@ How to use:
 
 ==========
 
-Fixes v0.3.1:
-- Fix the empty memo to enter Enter will always send instead of coming back
-- Create an action file with batch instead of using python
-- Remove SendStep5.bat at the end of SendStep4.bat
-- Automatically get PublicKey of (A) by 9cscan
-- Code optimization
+Fixes v0.3.2:
+- Fix enter waybackhome in step Get Signture instead of come back, tool will crash
+- Fix save right password but still report wrong step Get Signture
 
 ==========
 

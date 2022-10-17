@@ -10,7 +10,6 @@ Tính năng:
 
 Yêu cầu:
 - Windows 64bit
-- Không còn cần cài Python
 
 ==========
 
@@ -19,12 +18,9 @@ Sử dụng:
 
 ==========
 
-Sửa lỗi v0.3.1:
-- Sửa lỗi nhập Memo rỗng nhấn Enter sẽ gửi luôn thay vì quay lại
-- Tạo file action bằng batch thay vì dùng python
-- Bỏ SendStep5.bat ở cuối SendStep4.bat
-- Tự động Lấy PublicKey của (A) bằng 9cscan
-- Tối ưu code
+Sửa lỗi v0.3.2:
+- Sửa lỗi nhập waybackhome ở bước Lấy Signture thay vì quay lại thì crash
+- Sửa lỗi lưu Password đúng nhưng vẫn báo sai bước Get Signture
 
 ==========
 

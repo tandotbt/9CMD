@@ -40,6 +40,9 @@ set "_PASSWORD="
 goto :KTraPPK2
 :tryagainNoPass
 call :background
+rem Get _IDKeyCuaA
+set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
+set _IDKeyCuaA=%_IDKeyCuaA: =%
 echo Use the password saved from the PASSWORD folder
 cd %_cd%\planet
 set _PublicKeyCuaA=^|planet key export --passphrase %_PASSWORD% --public-key %_IDKeyCuaA%
