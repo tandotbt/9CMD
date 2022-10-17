@@ -29,7 +29,7 @@ del "Enter password"
 set /P "_password="
 call :background
 rem Quay lại 9cscanPublickey
-if %_password% == waybackhome (echo waybackhome>%_cd%\PASSWORD\_PASSWORD.txt && exit /b)
+if %_password% == waybackhome (set "_password=" && call %_cd%\Batch\SendCurrency.bat && exit /b)
 if %_password% == checkcheck (start https://youtu.be/SRf8pTXPz9I?t=26s)
 rem Lấy Public Key của A
 cd %_cd%\planet
