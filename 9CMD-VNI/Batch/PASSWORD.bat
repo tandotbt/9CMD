@@ -13,5 +13,5 @@ cls
 color 0B
 rem Gửi mật khẩu vào file _PASSWORD.txt
 cd %_cd%
-echo %PASSWORD% > %_cd%\PASSWORD\_PASSWORD.txt
+echo %PASSWORD%> %_cd%\PASSWORD\_PASSWORD.txt
 echo 1 > %_cd%\PASSWORD\_YorN.txt
