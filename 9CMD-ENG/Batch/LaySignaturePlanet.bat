@@ -33,7 +33,7 @@ if %_password% == waybackhome (set "_password=" && call %_cd%\Batch\SendCurrency
 if %_password% == checkcheck (start https://youtu.be/SRf8pTXPz9I?t=26s)
 rem Get Public Key of A
 cd %_cd%\planet
-set _signature=^|planet key sign --passphrase %_PASSWORD% %_IDKeyCuaA% %_cd%\Batch\action
+set _signature=^|planet key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_IDKeyCuaA% %_cd%\Batch\action
 echo %_signature% > %_cd%\planet\_KTraSignature.txt
 set "_PASSWORD="
 goto :KTraSignature2
@@ -44,7 +44,7 @@ set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
 set _IDKeyCuaA=%_IDKeyCuaA: =%
 echo Use the password saved from the PASSWORD folder
 cd %_cd%\planet
-set _signature=^|planet key sign --passphrase %_PASSWORD% %_IDKeyCuaA% %_cd%\Batch\action
+set _signature=^|planet key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_IDKeyCuaA% %_cd%\Batch\action
 echo %_signature% > %_cd%\planet\_KTraSignature.txt
 set "_PASSWORD="
 goto :KTraSignature1

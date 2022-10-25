@@ -20,7 +20,8 @@ echo ==========
 echo Nhập Public Key của (A) bằng 9cscan
 echo.
 cd %_cd%\batch
-curl --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
+rem --ssl-no-revoke sửa lỗi
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
 rem Lọc kết quả lấy dữ liệu
 echo ==========
 echo Tìm publicKey của (A)...

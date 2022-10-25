@@ -16,6 +16,7 @@ rem Copy _cd.txt cho tất cả thư mục
 copy "%_cd%\_cd.txt" "%_cd%\batch\_cd.txt"
 copy "%_cd%\_cd.txt" "%_cd%\planet\_cd.txt"
 copy "%_cd%\_cd.txt" "%_cd%\user\_cd.txt"
+copy "%_cd%\_cd.txt" "%_cd%\user\utc\_cd.txt"
 copy "%_cd%\_cd.txt" "%_cd%\PASSWORD\_cd.txt"
 copy "%_cd%\_cd.txt" "%_cd%\data\_cd.txt"
 timeout 20

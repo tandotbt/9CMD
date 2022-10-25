@@ -13,7 +13,13 @@ rem Nhập
 echo ==========
 echo Nhập ví (A)
 echo.
+rem Hiển thị ví đang có file UTC
+cd %_cd%\planet
+planet key --path %_cd%\user\utc> _allKey.txt
+more _allKey.txt
+del _allKey.txt
 cd %_cd%\batch
+echo.
 set /p _viA="Nhập ví A: "
 echo %_viA% > %_cd%\user\_viA.txt
 rem Kiểm tra số dư
@@ -49,7 +55,8 @@ echo ==========
 echo Nhập Public Key của (A) bằng 9cscan
 echo.
 cd %_cd%\batch
-curl --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
+rem --ssl-no-revoke sửa lỗi
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
 rem Lọc kết quả lấy dữ liệu
 echo ==========
 echo Tìm publicKey của (A)...
@@ -114,7 +121,13 @@ call :Background
 echo ==========
 echo Nhập ví (A)
 echo.
+rem Hiển thị ví đang có file UTC
+cd %_cd%\planet
+planet key --path %_cd%\user\utc> _allKey.txt
+more _allKey.txt
+del _allKey.txt
 cd %_cd%\batch
+echo.
 set /p _viA="Nhập ví A: "
 echo %_viA% > %_cd%\user\_viA.txt
 rem Kiểm tra số dư

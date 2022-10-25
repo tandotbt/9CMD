@@ -33,7 +33,7 @@ if %_password% == waybackhome (echo waybackhome>%_cd%\PASSWORD\_PASSWORD.txt && 
 if %_password% == checkcheck (start https://youtu.be/SRf8pTXPz9I?t=26s)
 rem Lấy Public Key của A
 cd %_cd%\planet
-set _PublicKeyCuaA=^|planet key export --passphrase %_PASSWORD% --public-key %_IDKeyCuaA%
+set _PublicKeyCuaA=^|planet key export --passphrase %_PASSWORD% --public-key --path %_cd%\user\utc %_IDKeyCuaA%
 echo %_PublicKeyCuaA% > %_cd%\planet\_KTraPPK.txt
 set "_PASSWORD="
 goto :KTraPPK2
@@ -44,7 +44,7 @@ set /p _IDKeyCuaA=<%_cd%\user\_IDKeyCuaA.txt
 set _IDKeyCuaA=%_IDKeyCuaA: =%
 echo Sử dụng mật khẩu đã lưu từ thư mục PASSWORD
 cd %_cd%\planet
-set _PublicKeyCuaA=^|planet key export --passphrase %_PASSWORD% --public-key %_IDKeyCuaA%
+set _PublicKeyCuaA=^|planet key export --passphrase %_PASSWORD% --public-key --path %_cd%\user\utc %_IDKeyCuaA%
 echo %_PublicKeyCuaA% > %_cd%\planet\_KTraPPK.txt
 set "_PASSWORD="
 goto :KTraPPK1

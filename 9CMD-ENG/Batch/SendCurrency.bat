@@ -28,6 +28,13 @@ goto :KTraNode1
 rem Enter wallet (A)
 :NhapViA
 call :background
+rem Showing wallet in UTC folder
+cd %_cd%\planet
+planet key --path %_cd%\user\utc> _allKey.txt
+more _allKey.txt
+del _allKey.txt
+cd %_cd%
+echo.
 rem Enter wallet (A)
 echo.[1]Use node          : %_node%
 set /p _viA="Wallet sender (A): "
@@ -102,7 +109,8 @@ echo ==========
 echo Enter Public key of (A) by 9cscan
 echo.
 cd %_cd%\batch
-curl --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
+rem --ssl-no-revoke fixed
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
 rem Filter the results of data
 echo ==========
 echo Searching publicKey of (A)...

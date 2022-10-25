@@ -18,9 +18,11 @@ How to use:
 
 ==========
 
-Fixes v0.3.2:
-- Fix enter waybackhome in step Get Signture instead of come back, tool will crash
-- Fix save right password but still report wrong step Get Signture
+Change v0.4:
+- Add User/UTC folder, instead of taking UTC from keystore, taken from the User/UTC folder
+- Add show all wallets in User/utc folder when entering the wallet (A)
+- Add `--ssl-no-revoke` to fix the unknown error when taking public key with 9CSCAN
+- Upgrade Planet to 0.43.1
 
 ==========
 

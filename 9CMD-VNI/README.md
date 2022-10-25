@@ -18,9 +18,11 @@ Sử dụng:
 
 ==========
 
-Sửa lỗi v0.3.2:
-- Sửa lỗi nhập waybackhome ở bước Lấy Signture thay vì quay lại thì crash
-- Sửa lỗi lưu Password đúng nhưng vẫn báo sai bước Get Signture
+Sửa lỗi v0.4:
+- Thêm thư mục user/utc, thay vì lấy UTC từ keystore thì lấy từ thư mục user/utc
+- Thêm hiển thị tất cả ví trong user/utc khi nhập ví (A)
+- Thêm `--ssl-no-revoke` để sửa lỗi không xác định khi lấy public key bằng 9cscan
+- Nâng cấp planet lên 0.43.1
 
 ==========
 

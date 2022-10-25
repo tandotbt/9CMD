@@ -20,9 +20,11 @@ Yêu cầu:
 
 ==========
 
-Sửa lỗi v0.3.2:
-- Sửa lỗi nhập waybackhome ở bước Lấy Signture thay vì quay lại thì crash
-- Sửa lỗi lưu Password đúng nhưng vẫn báo sai bước Get Signture
+Sửa lỗi v0.4:
+- Thêm thư mục user/utc, thay vì lấy UTC từ keystore thì lấy từ thư mục user/utc
+- Thêm hiển thị tất cả ví trong user/utc khi nhập ví (A)
+- Thêm `--ssl-no-revoke` để sửa lỗi không xác định khi lấy public key bằng 9cscan
+- Nâng cấp planet lên 0.43.1
 
 ==========
 
@@ -68,9 +70,11 @@ Request:
 
 ==========
 
-Fixes v0.3.2:
-- Fix enter waybackhome in step Get Signture instead of come back, tool will crash
-- Fix save right password but still report wrong step Get Signture
+Change v0.4:
+- Add User/UTC folder, instead of taking UTC from keystore, taken from the User/UTC folder
+- Add show all wallets in User/utc folder when entering the wallet (A)
+- Add `--ssl-no-revoke` to fix the unknown error when taking public key with 9CSCAN
+- Upgrade Planet to 0.43.1
 
 ==========
 
