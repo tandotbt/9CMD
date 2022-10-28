@@ -23,11 +23,9 @@ rem Kiểm tra node có hoạt động hay không
 cd %_cd%
 call :KTraNode
 set /p _KTRaNode=<%_cd%/data/_KTraNode.txt
-echo %_KTRaNode% |find /v "data" && set _ktra=0
+echo %_KTRaNode% |find /v "data" & set _ktra=%errorlevel%
 call :background1
-echo %_KTRaNode% |find /v "data" || set _ktra=1
-call :background1
-if "%_ktra%"=="1" (timeout 1 && exit /b) else (echo Lỗi 3: Node %_node% không hoạt động, thử lại... && color 4F && timeout 5 && goto :ChonNode)
+if "%_ktra%"=="0" (timeout 1 & exit /b) else (set /a _ktra=0 & echo Lỗi 3: Node %_node% không hoạt động, thử lại... && color 4F && timeout 5 && goto :ChonNode)
 :KTraNode
 cd %_cd%\batch
 echo {"query":"query{nodeStatus{preloadEnded}}"} > input.json

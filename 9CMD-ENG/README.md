@@ -5,6 +5,7 @@ TOoL fOR nINe CHrOnicleS
 
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
+- Tracked Avatar - Check NCG and Crystal quickly
 
 ==========
 
@@ -14,15 +15,15 @@ Request:
 ==========
 
 How to use:
+- Copy the UTC file from `%appdata%\planetarium\keystore` to `\User\UTC` of 9CMD to work normally
 - Run first 9cmd.bat file, press number from the keyboard to continue...
+- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
 ==========
 
-Change v0.4:
-- Add User/UTC folder, instead of taking UTC from keystore, taken from the User/UTC folder
-- Add show all wallets in User/utc folder when entering the wallet (A)
-- Add `--ssl-no-revoke` to fix the unknown error when taking public key with 9CSCAN
-- Upgrade Planet to 0.43.1
+Change v0.5:
+- Add Avatar Tracked feature
+- Fix enter node does not work, instead show Error 3, it still work ok
 
 ==========
 

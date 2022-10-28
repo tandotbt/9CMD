@@ -5,6 +5,7 @@ TOoL cHo CHín cÊ
 
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
+- Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
 
 ==========
 
@@ -14,15 +15,15 @@ Yêu cầu:
 ==========
 
 Sử dụng:
+- Copy file UTC từ `%appdata%\planetarium\keystore` vào `\User\UTC` của 9CMD để hoạt động bình thường
 - Chạy file 9CMD.bat đầu tiên, nhấn số từ bàn phím để tiếp tục...
+- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
 ==========
 
-Sửa lỗi v0.4:
-- Thêm thư mục user/utc, thay vì lấy UTC từ keystore thì lấy từ thư mục user/utc
-- Thêm hiển thị tất cả ví trong user/utc khi nhập ví (A)
-- Thêm `--ssl-no-revoke` để sửa lỗi không xác định khi lấy public key bằng 9cscan
-- Nâng cấp planet lên 0.43.1
+Sửa lỗi v0.5:
+- Thêm tính năng Theo dõi Avatar
+- Sửa nhập Node không hoạt động, thay vì Lỗi 3 thì vẫn nhận
 
 ==========
 

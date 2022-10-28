@@ -314,11 +314,9 @@ rem Check node is active or not
 cd %_cd%
 call %_cd%\batch\KTraNode.bat
 set /p _KTRaNode=<%_cd%/data/_KTraNode.txt
-echo %_KTRaNode% |find /v "data" && set _ktra=0
+echo %_KTRaNode% |find /v "data" & set _ktra=%errorlevel%
 call :background1
-echo %_KTRaNode% |find /v "data" || set _ktra=1
-call :background1
-if "%_ktra%"=="1" (goto :NhapViA) else (echo Error 3: Node %_node% does not work, try again... && color 4F && timeout 5 && goto :ChonNode)
+if "%_ktra%"=="0" (timeout 1 & exit /b) else (set /a _ktra=0 & echo Error 3: Node %_node% does not work, try again... && color 4F && timeout 5 && goto :ChonNode)
 :KTraSoLuong
 rem Check amount
 echo ==========

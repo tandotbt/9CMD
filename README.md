@@ -12,6 +12,7 @@ Sử dụng:
 
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
+- Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
 
 ==========
 
@@ -21,11 +22,9 @@ Yêu cầu:
 
 ==========
 
-Sửa lỗi v0.4:
-- Thêm thư mục user/utc, thay vì lấy UTC từ keystore thì lấy từ thư mục user/utc
-- Thêm hiển thị tất cả ví trong user/utc khi nhập ví (A)
-- Thêm `--ssl-no-revoke` để sửa lỗi không xác định khi lấy public key bằng 9cscan
-- Nâng cấp planet lên 0.43.1
+Sửa lỗi v0.5:
+- Thêm tính năng Theo dõi Avatar
+- Sửa nhập Node không hoạt động, thay vì Lỗi 3 thì vẫn nhận
 
 ==========
 
@@ -72,11 +71,9 @@ Request:
 
 ==========
 
-Change v0.4:
-- Add User/UTC folder, instead of taking UTC from keystore, taken from the User/UTC folder
-- Add show all wallets in User/utc folder when entering the wallet (A)
-- Add `--ssl-no-revoke` to fix the unknown error when taking public key with 9CSCAN
-- Upgrade Planet to 0.43.1
+Change v0.5:
+- Add Avatar Tracked feature
+- Fix enter node does not work, instead show Error 3, it still work ok
 
 ==========
 

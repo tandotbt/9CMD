@@ -315,11 +315,9 @@ rem Kiểm tra node có hoạt động hay không
 cd %_cd%
 call %_cd%\batch\KTraNode.bat
 set /p _KTRaNode=<%_cd%/data/_KTraNode.txt
-echo %_KTRaNode% |find /v "data" && set _ktra=0
+echo %_KTRaNode% |find /v "data" & set _ktra=%errorlevel%
 call :background1
-echo %_KTRaNode% |find /v "data" || set _ktra=1
-call :background1
-if "%_ktra%"=="1" (goto :NhapViA) else (echo Lỗi 3: Node %_node% không hoạt động, thử lại... && color 4F && timeout 5 && goto :ChonNode)
+if "%_ktra%"=="0" (goto :NhapViA) else (echo Lỗi 3: Node %_node% không hoạt động, thử lại... && color 4F && timeout 5 && goto :ChonNode)
 rem Kiểm tra có đầu vào hay không
 :KTraSoLuong
 rem Kiểm tra số lượng
