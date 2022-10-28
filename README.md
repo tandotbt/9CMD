@@ -4,6 +4,7 @@ TOoL cHo CHín cÊ
 ==========
 
 Sử dụng:
+- Copy file UTC từ `%appdata%\planetarium\keystore` vào `\User\UTC` của 9CMD để hoạt động bình thường
 - Chạy file 9CMD.bat đầu tiên, nhấn số từ bàn phím để tiếp tục...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
@@ -54,6 +55,7 @@ TOoL fOR nINe CHrOnicleS
 ==========
 
 How to use:
+- Copy the UTC file from `%appdata%\planetarium\keystore` to `\User\UTC` of 9CMD to work normally
 - Run first 9cmd.bat file, press number from the keyboard to continue...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
