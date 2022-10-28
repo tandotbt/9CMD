@@ -22,7 +22,7 @@ Yêu cầu:
 
 ==========
 
-Sửa lỗi v0.5:
+Thay đổi v0.5:
 - Thêm tính năng Theo dõi Avatar
 - Sửa nhập Node không hoạt động, thay vì Lỗi 3 thì vẫn nhận
 
@@ -62,6 +62,7 @@ How to use:
 
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
+- Tracked Avatar - Check NCG and Crystal quickly
 
 ==========
 

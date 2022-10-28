@@ -21,7 +21,7 @@ Sử dụng:
 
 ==========
 
-Sửa lỗi v0.5:
+Thay đổi v0.5:
 - Thêm tính năng Theo dõi Avatar
 - Sửa nhập Node không hoạt động, thay vì Lỗi 3 thì vẫn nhận
 
