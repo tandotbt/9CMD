@@ -32,8 +32,8 @@ goto :Menu
 :tinhNang
 echo.
 echo ==========
-echo [1] Gửi NCG/Crystal
-echo [2] Theo dõi Avatar
-choice /c 12 /n /m "Nhập từ bàn phím: "
+echo [1] Send NCG/Crystal
+echo [2] Tracked Avatar
+choice /c 12 /n /m "Enter from the keyboard: "
 if %errorlevel% == 1 (call %_cd%\Batch\SendCurrency.bat)
 if %errorlevel% == 2 (call %_cd%\Batch\avatarAddress\TrackedAvatar.bat)
