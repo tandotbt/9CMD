@@ -22,4 +22,4 @@ copy "%_cd%\_cd.txt" "%_cd%\data\avatarAddress\_cd.txt">nul
 copy "%_cd%\_cd.txt" "%_cd%\batch\avatarAddress\_cd.txt">nul
 copy "%_cd%\_cd.txt" "%_cd%\user\avatarAddress\_cd.txt">nul
 timeout 20
-call %_cd%\batch\menu.bat
+call %_cd%\batch\enterUTC.bat

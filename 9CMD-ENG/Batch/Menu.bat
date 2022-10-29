@@ -5,7 +5,7 @@ title 9CMD - by tanbt
 call :background
 echo.        TOoL fOr niNe ChRoniCleS
 echo.
-echo [1] Have you entered the UTC file yet??
+echo [1] Have you entered the UTC file yet?
 echo [2] Feature
 echo [3] Check for updates ^& Introduce
 echo.
