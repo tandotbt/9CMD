@@ -4,8 +4,7 @@ TOoL cHo CHín cÊ
 ==========
 
 Sử dụng:
-- Copy file UTC từ `%appdata%\planetarium\keystore` vào `\User\UTC` của 9CMD để hoạt động bình thường
-- Chạy file 9CMD.bat đầu tiên, nhấn số từ bàn phím để tiếp tục...
+- Chạy file 9CMD.bat đầu tiên, làm theo hướng dẫn và nhấn số từ bàn phím để tiếp tục...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
 ==========
@@ -22,9 +21,11 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.5:
-- Thêm tính năng Theo dõi Avatar
-- Sửa nhập Node không hoạt động, thay vì Lỗi 3 thì vẫn nhận
+Thay đổi v0.5.1:
+- Thêm chức năng nhập file UTC từ thư mục hoặc file UTC đơn lẻ
+- Sửa thiếu tùy chọn 4 ở Menu
+- Tính năng gửi tiền tệ sẽ chọn node trước, sau đó chạy bình thường
+- Ẩn kết quả của lệnh copy
 
 ==========
 
@@ -54,8 +55,7 @@ TOoL fOR nINe CHrOnicleS
 ==========
 
 How to use:
-- Copy the UTC file from `%appdata%\planetarium\keystore` to `\User\UTC` of 9CMD to work normally
-- Run first 9cmd.bat file, press number from the keyboard to continue...
+- Run first 9cmd.bat file, follow the instructions and press number from the keyboard to continue...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
 ==========
@@ -72,9 +72,12 @@ Request:
 
 ==========
 
-Change v0.5:
-- Add Avatar Tracked feature
-- Fix enter node does not work, instead show Error 3, it still work ok
+Change v0.5.1:
+- Add the function to enter the UTC file from the single folder or the single UTC file
+- Fix miss option 4 in menu
+- Send currency feature will choose node first, then run normally
+- Hide the results of the copy command
+- Fix error Send currency feature v0.5
 
 ==========
 

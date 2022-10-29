@@ -48,7 +48,7 @@ color 4F
 cd %_cd%\planet
 rem Xóa file txt trong planet
 del *.txt
-copy "%_cd%\data\_cd.txt" "%_cd%\planet\_cd.txt"
+copy "%_cd%\data\_cd.txt" "%_cd%\planet\_cd.txt">nul
 goto :errorUTC
 
 :errorUTC
@@ -69,7 +69,7 @@ echo.
 echo %_IDKeyCuaA:~0,36% > %_cd%\user\_IDKeyCuaA.txt
 rem Xóa file txt trong planet
 del *.txt
-copy "%_cd%\data\_cd.txt" "%_cd%\planet\_cd.txt"
+copy "%_cd%\data\_cd.txt" "%_cd%\planet\_cd.txt">nul
 timeout 3
 :Background
 cls

@@ -6,6 +6,15 @@ title Send NCG/Crystal
 rem Reset value
 set /a _hienInputPass=1
 set /a _ktra=0
+rem Select Node to use
+:ChonNode
+call :background
+rem Reset value _node.txt
+set "_node="
+set /p _node="Use node number (Should choose from 1-10): "
+echo %_node% > %_cd%\data\_node.txt
+goto :KTraNode1
+:LichSu
 rem Menu send currency
 call :background
 echo [1]Create new, good progress 
@@ -14,17 +23,9 @@ echo [3]Back to the menu
 echo ==========
 echo.
 choice /c 123 /n /m "[1]Newgame, [2]Continue or [3]Main Menu: "
-if %errorlevel% equ 1 (goto :ChonNode)
+if %errorlevel% equ 1 (goto :NhapViA)
 if %errorlevel% equ 2 (goto :miniSendCurrency)
 if %errorlevel% equ 3 (call %_cd%\batch\Menu.bat && exit /b)
-rem Chọn node sử dụng
-:ChonNode
-call :background
-rem Reset value _node.txt
-set _node=<%_cd%\data\_null.txt
-set /p _node="Use node number (Should choose from 1-10): "
-echo %_node% > %_cd%\data\_node.txt
-goto :KTraNode1
 rem Enter wallet (A)
 :NhapViA
 call :background
@@ -316,7 +317,7 @@ call %_cd%\batch\KTraNode.bat
 set /p _KTRaNode=<%_cd%/data/_KTraNode.txt
 echo %_KTRaNode% |find /v "data" & set _ktra=%errorlevel%
 call :background1
-if "%_ktra%"=="0" (timeout 1 & exit /b) else (set /a _ktra=0 & echo Error 3: Node %_node% does not work, try again... && color 4F && timeout 5 && goto :ChonNode)
+if "%_ktra%"=="0" (goto :LichSu) else (set /a _ktra=0 & echo Error 3: Node %_node% does not work, try again... && color 4F && timeout 5 && goto :ChonNode)
 :KTraSoLuong
 rem Check amount
 echo ==========

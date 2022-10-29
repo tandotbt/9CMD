@@ -6,6 +6,15 @@ title Gửi NCG/Crystal
 rem Reset giá trị
 set /a _hienInputPass=1
 set /a _ktra=0
+rem Chọn node sử dụng
+:ChonNode
+call :background
+rem Reset giá trị _node.txt
+set "_node="
+set /p _node="Sử dụng node số (Nên chọn từ 1-10): "
+echo %_node% > %_cd%\data\_node.txt
+goto :KTraNode1
+:LichSu
 rem Sử dụng dữ liệu trước đó hay tạo mới
 call :background
 echo [1]Tạo mới, 1 quá trình tịnh tiến
@@ -14,17 +23,9 @@ echo [3]Quay lại Menu
 echo ==========
 echo.
 choice /c 123 /n /m "[1]Newgame, [2]Continue hoặc [3]Main Menu: "
-if %errorlevel% equ 1 (goto :ChonNode)
+if %errorlevel% equ 1 (goto :NhapViA)
 if %errorlevel% equ 2 (goto :miniSendCurrency)
 if %errorlevel% equ 3 (call %_cd%\batch\Menu.bat && exit /b)
-rem Chọn node sử dụng
-:ChonNode
-call :background
-rem Reset giá trị _node.txt
-set _node=<%_cd%\data\_null.txt
-set /p _node="Sử dụng node số (Nên chọn từ 1-10): "
-echo %_node% > %_cd%\data\_node.txt
-goto :KTraNode1
 rem Nhập ví (A)
 :NhapViA
 call :background
@@ -317,7 +318,7 @@ call %_cd%\batch\KTraNode.bat
 set /p _KTRaNode=<%_cd%/data/_KTraNode.txt
 echo %_KTRaNode% |find /v "data" & set _ktra=%errorlevel%
 call :background1
-if "%_ktra%"=="0" (goto :NhapViA) else (echo Lỗi 3: Node %_node% không hoạt động, thử lại... && color 4F && timeout 5 && goto :ChonNode)
+if "%_ktra%"=="0" (goto :LichSu) else (echo Lỗi 3: Node %_node% không hoạt động, thử lại... && color 4F && timeout 5 && goto :ChonNode)
 rem Kiểm tra có đầu vào hay không
 :KTraSoLuong
 rem Kiểm tra số lượng

@@ -15,15 +15,17 @@ Request:
 ==========
 
 How to use:
-- Copy the UTC file from `%appdata%\planetarium\keystore` to `\User\UTC` of 9CMD to work normally
-- Run first 9cmd.bat file, press number from the keyboard to continue...
+- Run first 9cmd.bat file, follow the instructions and press number from the keyboard to continue...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
 ==========
 
-Change v0.5:
-- Add Avatar Tracked feature
-- Fix enter node does not work, instead show Error 3, it still work ok
+Change v0.5.1:
+- Add the function to enter the UTC file from the single folder or the single UTC file
+- Fix miss option 4 in menu
+- Send currency feature will choose node first, then run normally
+- Hide the results of the copy command
+- Fix error Send currency feature v0.5
 
 ==========
 

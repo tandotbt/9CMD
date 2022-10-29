@@ -15,15 +15,16 @@ Yêu cầu:
 ==========
 
 Sử dụng:
-- Copy file UTC từ `%appdata%\planetarium\keystore` vào `\User\UTC` của 9CMD để hoạt động bình thường
-- Chạy file 9CMD.bat đầu tiên, nhấn số từ bàn phím để tiếp tục...
+- Chạy file 9CMD.bat đầu tiên, làm theo hướng dẫn và nhấn số từ bàn phím để tiếp tục...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 
 ==========
 
-Thay đổi v0.5:
-- Thêm tính năng Theo dõi Avatar
-- Sửa nhập Node không hoạt động, thay vì Lỗi 3 thì vẫn nhận
+Thay đổi v0.5.1:
+- Thêm chức năng nhập file UTC từ thư mục hoặc file UTC đơn lẻ
+- Sửa thiếu tùy chọn 4 ở Menu
+- Tính năng gửi tiền tệ sẽ chọn node trước, sau đó chạy bình thường
+- Ẩn kết quả của lệnh copy
 
 ==========
 
