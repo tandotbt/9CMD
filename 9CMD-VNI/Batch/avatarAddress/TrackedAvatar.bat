@@ -37,13 +37,15 @@ rem Hiển thị ví đang có file UTC
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
 more _allKey.txt
-copy _allKey.txt %_cd%\user\avatarAddress\utc.txt
+copy _allKey.txt %_cd%\user\avatarAddress\utc.txt>nul
 del _allKey.txt
 echo.==========
 echo.
 echo.Gõ "allUTC" để nhập nhanh toàn bộ ví trong thư mục UTC
+echo.Gõ "waybackhome" để quay lại
 set /p _vi="Nhập ví: "
 if "%_vi%" == "allUTC" (call %_cd%\batch\avatarAddress\UTCtoAddress.bat & set "_vi=" & goto :LichSu)
+if "%_vi%" == "waybackhome" (set "_vi=" & goto :KtraLichSu)
 goto :KtraVi
 :KtraVi
 cd %_cd%\batch
@@ -99,29 +101,35 @@ goto :eof
 set /a _j=1
 call :background
 echo.[*] Đang xử lý...
+del /q %_cd%\batch\avatarAddress\_temp.json
 :hienThongTin
 cd %_cd%\batch\avatarAddress
 jq -r ".[%_j%]|.vi?|select(.)" oldData.json> _vi.json
 set /p _vi=<_vi.json
 jq -r ".[%_j%]|.ncg?|select(.)" oldData.json> _ncg.json
 set /p _ncg=<_ncg.json
-set _ncg=        %_ncg%
+rem Xóa phần thập phân
+set /a _ncg=%_ncg%
+set _ncg=               %_ncg%
 jq -r ".[%_j%]|.crystal?|select(.)" oldData.json> _crystal.json
 set /p _crystal=<_crystal.json
-set _crystal=        %_crystal%
-echo.[%_j%]Ví		 : %_vi:~0,7%***		%_ncg:~-8%		%_crystal:~-8%>> _temp.json
+rem Xóa phần thập phân
+set /a _crystal=%_crystal%
+set _crystal=               %_crystal%
+echo.[%_j%]Ví		 : %_vi:~0,7%***		%_ncg:~-15%		%_crystal:~-15%>> _temp.json
 set /a _j+=1
-if %_i%==%_j% (goto :done) else (goto :hienThongTin)
+if not %_i%==%_j% (goto :hienThongTin)
+cd %_cd%\batch\avatarAddress
 del /q _vi.json & del /q _ncg.json & del /q _crystal.json
 :done
 call :background
 if %_i% gtr 15 (mode con:cols=100 lines=40 & cls & type %_cd%\Data\avatarAddress\_TitleTrackedAvatar.txt)
-echo.[*]Sử dụng node	: %_node%			    NCG                 CRYSTAL
+echo.[*]Sử dụng node	: %_node%			           NCG                 CRYSTAL
 cd %_cd%\batch\avatarAddress
 more _temp.json
 echo.==========
 set /a _j+=-1
-echo.[1..%_j%] Đang hoàn thiện...
+echo.[1..%_j%] Tracked Avatar +
 echo.[100] Gửi NCG/Crystal
 echo.[200] Quay lại Menu
 set /a _j=%_i%
@@ -135,7 +143,8 @@ if defined var (echo Lỗi 2: Sai cú pháp, thử lại... && color 4F && timeo
 if "%_pick%"=="0" (del /q %_cd%\batch\avatarAddress\_temp.json & call %_cd%\batch\avatarAddress\AddressToJson.bat & copy %_cd%\user\avatarAddress\oldData.json %_cd%\batch\avatarAddress\oldData.json & set "_pick=" & goto :TheoDoiAvatar)
 if %_pick%==100 (del /q %_cd%\batch\avatarAddress\_temp.json & set "_pick=" & call %_cd%\batch\SendCurrency.bat)
 if %_pick%==200 (del /q %_cd%\batch\avatarAddress\_temp.json & set "_pick=" & call %_cd%\batch\Menu.bat)
-if %_pick% geq %_j% (echo Lỗi 2: Giá trị vượt quá [%_j%], thử lại... && color 4F && timeout 10 & set "_pick=")
+if %_pick% geq %_j% (echo Lỗi 3: Giá trị vượt quá [%_j%], thử lại... && color 4F && timeout 10 & set "_pick=" & goto :done)
+if %_pick% lss %_j% (start %_cd%\batch\avatarAddress\tracker.bat %_pick% & set "_pick=")
 goto :done
 :Background
 cls

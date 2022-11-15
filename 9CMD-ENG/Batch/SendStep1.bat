@@ -40,16 +40,12 @@ echo ==========
 echo Find transferAsset...
 echo.
 cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat transferAsset output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_transferAsset.txt
+jq -r "..|.transferAsset?|select(.)" output.json> %_cd%\user\_transferAsset.txt
 echo ==========
 echo Find nextTxNonce...
 echo.
 cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat nextTxNonce output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_nextTxNonce.txt
+jq -r "..|.nextTxNonce?|select(.)" output.json> %_cd%\user\_nextTxNonce.txt
 rem Delete Input and Output file draft
 cd %_cd%\batch
 del *.json

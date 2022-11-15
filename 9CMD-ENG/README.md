@@ -6,6 +6,7 @@ TOoL fOR nINe CHrOnicleS
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
 - Tracked Avatar - Check NCG and Crystal quickly
+- [Donater/Code Premium] Auto refill AP when the character has 0 AP
 
 ==========
 
@@ -20,12 +21,13 @@ How to use:
 
 ==========
 
-Change v0.5.1:
-- Add the function to enter the UTC file from the single folder or the single UTC file
-- Fix miss option 4 in menu
-- Send currency feature will choose node first, then run normally
-- Hide the results of the copy command
-- Fix error Send currency feature v0.5
+Change v0.6:
+- Add features Tracked Avatar + (The English version will come later)
+- Delete the function remove quotes from string, replacing other function will always send money successfully
+- Repairing get public key with 9cscan will now be ok than before
+- Change the choice 1 Key ID to be more suitable
+- Change how to take the title of the mini
+- Update Planet up planet-0.44.1-win-x64
 
 ==========
 

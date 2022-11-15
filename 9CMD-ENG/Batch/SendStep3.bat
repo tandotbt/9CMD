@@ -35,11 +35,16 @@ set _signature=%_signature: =%
 rem Delete file _KTraSignature.txt in Planet
 del /q %_cd%\planet\_KTraSignature.txt
 echo ==========
-echo Get Signature
+echo Get payload
 echo.
 echo After this step should not stop, complete the sending process is better
 echo If interrupted, you need play 9C and do something like receiving AP, SWEEP, selling items...
-set /p _enter="Press [Enter] to continue sending"
+echo.[1] Continue, automatically after 10 seconds
+echo.[2] Back to the menu
+choice /c 12 /n /t 10 /d 1 /m "Enter from the keyboard: "
+if %errorlevel%==1 (goto :tieptucGui)
+if %errorlevel%==2 (call %_cd%\batch\menu.bat)
+:tieptucGui
 rem Assign variables to code
 cd %_cd%\batch
 call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_unsignedTransaction% _codeStep3.txt > input1.json
@@ -50,9 +55,7 @@ rem Filter the results of data
 echo ==========
 echo Searching signTransaction...
 echo.
-call %_cd%\batch\ReadJson.bat signTransaction output.json
-call %_cd%\batch\XoaNhay2.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_signTransaction.txt
+jq -r "..|.signTransaction?|select(.)" output.json> %_cd%\user\_signTransaction.txt
 rem Delete file draft input and output
 cd %_cd%\batch
 del *.json

@@ -9,6 +9,7 @@ echo ==========
 echo Select Node
 echo.
 call %_cd%\batch\miniChonNode.bat
+call :Background
 rem Enter wallet (A)
 echo ==========
 echo Enter wallet (A)
@@ -56,15 +57,17 @@ echo Enter Public key of (A) by 9cscan
 echo.
 cd %_cd%\batch
 rem --ssl-no-revoke fixed
-curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account 2>nul|findstr /i signed> output.json 2>nul
+if %errorlevel% == 0 (goto :9cscanPublicKey2)
+:9cscanPublicKey1
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account2 2>nul|findstr /i signed> output.json 2>nul
+:9cscanPublicKey2
 rem Filter the results of data
 echo ==========
 echo Searching publicKey of (A)...
 echo.
 cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat publicKey output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_PublicKeyCuaA.txt
+jq -r "..|.publicKey?|select(.)" output.json> %_cd%\user\_PublicKeyCuaA.txt
 rem Delete Input and Output draft
 cd %_cd%\batch
 del *.json
@@ -114,7 +117,7 @@ exit /b
 :Background
 cls
 cd %_cd%
-call %_cd%\Batch\TitleSendCurrency.bat
+call %_cd%\Batch\TitleMini.bat 2
 exit /b
 :NhapViA
 call :Background

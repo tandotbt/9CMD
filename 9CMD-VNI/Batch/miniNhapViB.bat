@@ -9,6 +9,7 @@ echo ==========
 echo Chọn node hoạt động
 echo.
 call %_cd%\batch\miniChonNode.bat
+call :Background
 rem Nhập
 echo ==========
 echo Nhập ví (B)
@@ -37,7 +38,7 @@ if not [%_ncgCuaB%] == [] (timeout 1 && exit /b) else (echo Lỗi 1: ví B chưa
 :Background
 cls
 cd %_cd%
-call %_cd%\Batch\TitleSendCurrency.bat
+call %_cd%\Batch\TitleMini.bat 2
 exit /b
 :NhapViB
 call :Background

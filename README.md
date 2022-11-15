@@ -12,20 +12,22 @@ Sử dụng:
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
 - Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
+- [Donater/Code Premium] Auto refill AP khi nhân vật còn 0 AP
 
 ==========
 
 Yêu cầu:
 - Windows 64bit
-- <s>Đã cài đặt Python tại https://www.python.org/downloads/</s> Không còn cần cài Python
 
 ==========
 
-Thay đổi v0.5.1:
-- Thêm chức năng nhập file UTC từ thư mục hoặc file UTC đơn lẻ
-- Sửa thiếu tùy chọn 4 ở Menu
-- Tính năng gửi tiền tệ sẽ chọn node trước, sau đó chạy bình thường
-- Ẩn kết quả của lệnh copy
+Thay đổi v0.6:
+- Thêm tính năng Tracked Avatar + (Sẽ ghi chú chi tiết hơn ở bản sau)
+- Xóa chức năng xóa nháy, thay bằng cách khác sẽ luôn gửi tiền tệ thành công
+- Sửa lấy public key bằng 9cscan giờ sẽ ok hơn trước
+- Thay đổi lựa chọn 1 Lấy Key ID cho phù hợp hơn
+- Thay đổi cách lấy title của mini
+- Cập nhật Planet lên planet-0.44.1-win-x64
 
 ==========
 
@@ -63,21 +65,22 @@ How to use:
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
 - Tracked Avatar - Check NCG and Crystal quickly
+- [Donater/Code Premium] Auto refill AP when the character has 0 AP
 
 ==========
 
 Request:
 - Windows 64bit
-- <s>Installed Python at https://www.python.org/downloads/</s> No need to install Python
 
 ==========
 
-Change v0.5.1:
-- Add the function to enter the UTC file from the single folder or the single UTC file
-- Fix miss option 4 in menu
-- Send currency feature will choose node first, then run normally
-- Hide the results of the copy command
-- Fix error Send currency feature v0.5
+Change v0.6:
+- Add features Tracked Avatar + (The English version will come later)
+- Delete the function remove quotes from string, replacing other function will always send money successfully
+- Repairing get public key with 9cscan will now be ok than before
+- Change the choice 1 Key ID to be more suitable
+- Change how to take the title of the mini
+- Update Planet up planet-0.44.1-win-x64
 
 ==========
 

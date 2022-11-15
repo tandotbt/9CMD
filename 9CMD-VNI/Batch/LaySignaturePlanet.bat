@@ -48,11 +48,13 @@ set _signature=^|planet key sign --passphrase %_PASSWORD% --store-path %_cd%\use
 echo %_signature% > %_cd%\planet\_KTraSignature.txt
 set "_PASSWORD="
 goto :KTraSignature1
-rem Kiểm tra xem có là Publick key hay không
+rem Kiểm tra xem có là Signature hay không
 :KTraSignature1
+set "_KTraSignature="
 set /p _KTraSignature=<%_cd%\planet\_KTraSignature.txt
 if [%_KTraSignature%] == [] (echo Lỗi 1: Mật khẩu cài trong file PASSWORD chưa đúng, thử lại... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesSignature)
 :KTraSignature2
+set "_KTraSignature="
 set /p _KTraSignature=<%_cd%\planet\_KTraSignature.txt
 if [%_KTraSignature%] == [] (echo Lỗi 2: Nhập sai mật khẩu, thử lại... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && echo 0 > %_cd%\PASSWORD\_PASSWORD.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesSignature)
 :YesSignature

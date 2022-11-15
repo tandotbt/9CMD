@@ -46,7 +46,7 @@ goto :KTraSoLuong
 :Background
 cls
 cd %_cd%
-call %_cd%\Batch\TitleSendCurrency.bat
+call %_cd%\Batch\TitleMini.bat 4
 exit /b
 
 :KTraSoLuong

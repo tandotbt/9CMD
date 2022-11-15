@@ -22,7 +22,7 @@ more %_cd%\_temp.txt
 del /q %_cd%\_temp.txt
 :newUTC
 echo.
-echo.Kéo thả thư mục chứa UTC và nhấn Enter để nhập file UTC
+echo.Kéo thả file UTC hoặc thư mục chứa UTC và nhấn Enter để nhập file UTC
 echo.Chú ý: nếu thư mục nhập có khoảng trắng sẽ không thành công!
 echo.===
 echo.Gõ 'ok' để tiếp tục

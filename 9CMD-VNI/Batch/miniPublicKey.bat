@@ -21,15 +21,17 @@ echo Nhập Public Key của (A) bằng 9cscan
 echo.
 cd %_cd%\batch
 rem --ssl-no-revoke sửa lỗi
-curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account^&action=activate_account2^&action=unlock_equipment_recipe^&action=grinding^&limit=1> output.json
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account 2>nul|findstr /i signed> output.json 2>nul
+if %errorlevel% == 0 (goto :9cscanPublicKey2)
+:9cscanPublicKey1
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_viA%/transactions?action=activate_account2 2>nul|findstr /i signed> output.json 2>nul
+:9cscanPublicKey2
 rem Lọc kết quả lấy dữ liệu
 echo ==========
 echo Tìm publicKey của (A)...
 echo.
 cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat publicKey output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_PublicKeyCuaA.txt
+jq -r "..|.publicKey?|select(.)" output.json> %_cd%\user\_PublicKeyCuaA.txt
 rem Xóa file nháp input và output
 cd %_cd%\batch
 del *.json
@@ -44,7 +46,7 @@ exit /b
 :Background
 cls
 cd %_cd%
-call %_cd%\Batch\TitleSendCurrency.bat
+call %_cd%\Batch\TitleMini.bat 3
 exit /b
 :PlanetPublickey
 rem Chon node trước

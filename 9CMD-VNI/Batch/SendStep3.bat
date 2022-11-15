@@ -35,11 +35,16 @@ set _signature=%_signature: =%
 rem Xóa file _KTraSignature.txt trong Planet
 del /q %_cd%\planet\_KTraSignature.txt
 echo ==========
-echo Lấy Signature
+echo Lấy payload
 echo.
 echo Sau bước này không nên dừng lại mà hãy hoàn thành quy trình gửi
 echo Nếu bị gián đoạn, bạn cần vào 9C và làm gì đó như nhận AP, sweep, bán item...
-set /p _enter="Nhấn [Enter] để tiếp tục gửi"
+echo.[1] Tiếp tục, tự động sau 10s
+echo.[2] Quay lại menu
+choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
+if %errorlevel%==1 (goto :tieptucGui)
+if %errorlevel%==2 (call %_cd%\batch\menu.bat)
+:tieptucGui
 rem Gán biến vào code
 cd %_cd%\batch
 call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_unsignedTransaction% _codeStep3.txt > input1.json
@@ -50,9 +55,7 @@ rem Lọc kết quả lấy dữ liệu
 echo ==========
 echo Tìm signTransaction...
 echo.
-call %_cd%\batch\ReadJson.bat signTransaction output.json
-call %_cd%\batch\XoaNhay2.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_signTransaction.txt
+jq -r "..|.signTransaction?|select(.)" output.json> %_cd%\user\_signTransaction.txt
 rem Xóa file nháp input và output
 cd %_cd%\batch
 del *.json

@@ -10,7 +10,7 @@ echo [2] Tính năng
 echo [3] Kiểm tra cập nhật ^& Giới thiệu
 echo.
 echo.       Một sản phẩm make color :v
-echo.       === Phiên bản: [0.5.1]===
+echo.       === Phiên bản: [0.6]===
 choice /c 123 /n /m "Nhập từ bàn phím: "
 if %errorlevel% == 1 (call %_cd%\Batch\enterUTC.bat)
 if %errorlevel% == 2 (goto :tinhNang)

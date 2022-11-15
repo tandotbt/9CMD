@@ -21,9 +21,7 @@ echo ==========
 echo Find txStatus...
 echo.
 cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat txStatus output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_txStatus.txt
+jq -r "..|.txStatus?|select(.)" output.json> %_cd%\user\_txStatus.txt
 rem Delete Input and Output file draft
 cd %_cd%\batch
 del *.json

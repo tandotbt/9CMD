@@ -22,7 +22,7 @@ more %_cd%\_temp.txt
 del /q %_cd%\_temp.txt
 :newUTC
 echo.
-echo.Drag the folder containing UTC and press Enter to enter the UTC file
+echo.Drag the UTC file or folder containing UTC and press Enter to enter the UTC file
 echo.Note: If the import folder has a white space, it will not succeed!
 echo.===
 echo.Type 'ok' to continue

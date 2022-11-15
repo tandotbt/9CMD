@@ -51,9 +51,11 @@ set "_PASSWORD="
 goto :KTraPPK1
 rem Check whether it is Publick Key or not
 :KTraPPK1
+set "_KTraPPK="
 set /p _KTraPPK=<%_cd%\planet\_KTraPPK.txt
 if [%_KTraPPK%] == [] (echo Error 1: The password saved in the PASSWORD file is not correct, try again... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesPPK)
 :KTraPPK2
+set "_KTraPPK="
 set /p _KTraPPK=<%_cd%\planet\_KTraPPK.txt
 if [%_KTraPPK%] == [] (echo Error 2: Enter the wrong password, try again... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && echo 0 > %_cd%\PASSWORD\_PASSWORD.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesPPK)
 

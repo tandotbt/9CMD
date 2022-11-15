@@ -10,7 +10,7 @@ echo [2] Feature
 echo [3] Check for updates ^& Introduce
 echo.
 echo.           A product ra dẻ :v
-echo.         === Version: [0.5.1]===
+echo.         === Version: [0.6]===
 choice /c 123 /n /m "Enter from the keyboard: "
 if %errorlevel% == 1 (call %_cd%\Batch\enterUTC.bat)
 if %errorlevel% == 2 (goto :tinhNang)

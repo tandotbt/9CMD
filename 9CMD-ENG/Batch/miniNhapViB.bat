@@ -9,6 +9,7 @@ echo ==========
 echo Select Node hoạt động
 echo.
 call %_cd%\batch\miniChonNode.bat
+call :Background
 rem Enter wallet B
 echo ==========
 echo Enter wallet (B)
@@ -37,7 +38,7 @@ if not [%_ncgCuaB%] == [] (timeout 1 && exit /b) else (echo Error 1: Wallet B wr
 :Background
 cls
 cd %_cd%
-call %_cd%\Batch\TitleSendCurrency.bat
+call %_cd%\Batch\TitleMini.bat 2
 exit /b
 :NhapViB
 call :Background

@@ -50,9 +50,11 @@ set "_PASSWORD="
 goto :KTraPPK1
 rem Kiểm tra xem có là Publick key hay không
 :KTraPPK1
+set "_KTraPPK="
 set /p _KTraPPK=<%_cd%\planet\_KTraPPK.txt
 if [%_KTraPPK%] == [] (echo Lỗi 1: Mật khẩu cài trong file PASSWORD chưa đúng, thử lại... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesPPK)
 :KTraPPK2
+set "_KTraPPK="
 set /p _KTraPPK=<%_cd%\planet\_KTraPPK.txt
 if [%_KTraPPK%] == [] (echo Lỗi 2: Nhập sai mật khẩu, thử lại... && color 4F && set _YorN=0 && echo %_YorN% > %_cd%\PASSWORD\_YorN.txt && echo 0 > %_cd%\PASSWORD\_PASSWORD.txt && timeout 10 && goto :tryagainWithPass) else (goto :YesPPK)
 

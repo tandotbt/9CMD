@@ -40,16 +40,11 @@ echo ==========
 echo Tìm transferAsset...
 echo.
 cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat transferAsset output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_transferAsset.txt
+jq -r "..|.transferAsset?|select(.)" output.json> %_cd%\user\_transferAsset.txt
 echo ==========
 echo Tìm nextTxNonce...
 echo.
-cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat nextTxNonce output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_nextTxNonce.txt
+jq -r "..|.nextTxNonce?|select(.)" output.json> %_cd%\user\_nextTxNonce.txt
 rem Xóa file nháp input và output
 cd %_cd%\batch
 del *.json

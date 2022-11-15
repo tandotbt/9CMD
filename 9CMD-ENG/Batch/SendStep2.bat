@@ -27,9 +27,7 @@ echo ==========
 echo Find unsignedTransaction...
 echo.
 cd %_cd%\batch
-call %_cd%\batch\ReadJson.bat unsignedTransaction output.json
-call %_cd%\batch\XoaNhay.bat
-copy %_cd%\user\_Output.txt %_cd%\user\_unsignedTransaction.txt
+jq -r "..|.unsignedTransaction?|select(.)" output.json> %_cd%\user\_unsignedTransaction.txt
 rem Delete Input and Output file draft
 cd %_cd%\batch
 del *.json
