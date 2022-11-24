@@ -6,7 +6,8 @@ TOoL cHo CHín cÊ
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
 - Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
-- [Donater/Code Premium] Auto refill AP khi nhân vật còn 0 AP
+- [Donater / Premium code] Auto refill AP khi nhân vật còn 0 AP
+- [Donater / Premium code] Auto Sweep cho mỗi nhân vật
 
 ==========
 
@@ -21,13 +22,13 @@ Sử dụng:
 
 ==========
 
-Thay đổi v0.6:
-- Thêm tính năng Tracked Avatar + (Sẽ ghi chú chi tiết hơn ở bản sau)
-- Xóa chức năng xóa nháy, thay bằng cách khác sẽ luôn gửi tiền tệ thành công
-- Sửa lấy public key bằng 9cscan giờ sẽ ok hơn trước
-- Thay đổi lựa chọn 1 Lấy Key ID cho phù hợp hơn
-- Thay đổi cách lấy title của mini
-- Cập nhật Planet lên planet-0.44.1-win-x64
+Thay đổi v0.7:
+- Thay cách lấy _cd.txt
+- Thay cách lấy Stage đã mở tránh trùng nhau giữa các ví
+- Thêm lựa chọn Skip nhanh tới Tracker Avatar +
+- Thêm tính năng lấy level Stake để tìm số AP tiêu hao
+- Thêm tính năng lấy ID item
+- Thêm tính năng auto Sweep cho từng nhân vật
 
 ==========
 

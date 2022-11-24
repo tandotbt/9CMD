@@ -10,7 +10,7 @@ echo Create file _cd.txt
 echo.Note: The folder name contains 9CMD
 echo.THERE IS NO SPACES
 echo.If have, not work :vv
-set _cd=%cd%
+set _cd=%~dp0
 echo %_cd%>_cd.txt
 rem Copy _cd.txt for all folders
 copy "%_cd%\_cd.txt" "%_cd%\batch\_cd.txt">nul

@@ -6,7 +6,8 @@ TOoL fOR nINe CHrOnicleS
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
 - Tracked Avatar - Check NCG and Crystal quickly
-- [Donater/Code Premium] Auto refill AP when the character has 0 AP
+- [Donater / Premium code] Auto refill AP when the character has 0 AP
+- [Donater / Premium code] Auto Sweep for each character
 
 ==========
 
@@ -21,13 +22,13 @@ How to use:
 
 ==========
 
-Change v0.6:
-- Add features Tracked Avatar + (The English version will come later)
-- Delete the function remove quotes from string, replacing other function will always send money successfully
-- Repairing get public key with 9cscan will now be ok than before
-- Change the choice 1 Key ID to be more suitable
-- Change how to take the title of the mini
-- Update Planet up planet-0.44.1-win-x64
+Change v0.7:
+- Replace function get _cd.txt
+- Replace function get Stage opened prevent conflict
+- Add options skip to Tracker Avatar +
+- Add function get Stake level to find the AP consumption
+- Add function get item ID via html
+- Add Auto Sweep feature for each character
 
 ==========
 

@@ -10,7 +10,7 @@ echo Cài file cd
 echo.Lưu ý: Tên thư mục chứa 9CMD
 echo.KHÔNG ĐƯỢC CÓ KHOẢNG TRẮNG
 echo.có thì không chạy được :vv
-set _cd=%cd%
+set _cd=%~dp0
 echo %_cd%>_cd.txt
 rem Copy _cd.txt cho tất cả thư mục
 copy "%_cd%\_cd.txt" "%_cd%\batch\_cd.txt">nul

@@ -7,14 +7,16 @@ echo.           TOoL cHo CHín cÊ
 echo.
 echo [1] Bạn đã nhập file UTC chưa?
 echo [2] Tính năng
-echo [3] Kiểm tra cập nhật ^& Giới thiệu
+echo [3] Giới thiệu
+echo.[4] Hướng dẫn sử dụng
 echo.
 echo.       Một sản phẩm make color :v
-echo.       === Phiên bản: [0.6]===
-choice /c 123 /n /m "Nhập từ bàn phím: "
+echo.       === Phiên bản: [0.7]===
+choice /c 1234 /n /m "Nhập từ bàn phím: "
 if %errorlevel% == 1 (call %_cd%\Batch\enterUTC.bat)
 if %errorlevel% == 2 (goto :tinhNang)
-if %errorlevel% == 3 (start https://github.com/tandotbt/9CMD/releases & goto :GioiThieu)
+if %errorlevel% == 3 (goto :GioiThieu)
+if %errorlevel% == 4 (start https://9cmd.tanvpn.tk/ & goto :Menu)
 :Background
 cls
 cd %_cd%

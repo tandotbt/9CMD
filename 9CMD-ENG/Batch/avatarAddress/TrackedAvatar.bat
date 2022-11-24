@@ -86,10 +86,14 @@ echo.==========
 echo.[1] Reset old data
 echo.[2] Enter more wallet
 echo.[3] Run
-choice /c 123 /n /m "Enter from the keyboard: "
+set _file="%_cd%\user\avatarAddress\oldData.json"
+if exist %_file% (echo.[9] Skip to Tracked Avatar +)
+choice /c 1239 /n /m "Enter from the keyboard: "
 if %errorlevel%==1 (echo ""> %_cd%\user\avatarAddress\oldData.txt & echo ___> %_cd%\user\avatarAddress\_temp.json & goto :LichSu)
 if %errorlevel%==2 (call :background & echo ___> %_cd%\user\avatarAddress\_temp.json & goto :nhapvi)
 if %errorlevel%==3 (goto :KtraChay)
+if %errorlevel%==9 (copy %_cd%\user\avatarAddress\oldData.json %_cd%\batch\avatarAddress\oldData.json)
+goto :TheoDoiAvatar
 :KtraChay
 if %_i%==1 (echo Error 1: No wallet, retry... && color 4F && timeout 3 & goto :nhapvi) else (call %_cd%\batch\avatarAddress\AddressToJson.bat & copy %_cd%\user\avatarAddress\oldData.json %_cd%\batch\avatarAddress\oldData.json & goto :TheoDoiAvatar)
 goto :eof

@@ -1,3 +1,5 @@
+User Guide for 9CMD: https://9cmd.tanvpn.tk/
+
 # 9CDM -VNI
 TOoL cHo CHín cÊ
 
@@ -12,7 +14,8 @@ Sử dụng:
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
 - Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
-- [Donater/Code Premium] Auto refill AP khi nhân vật còn 0 AP
+- [Donater / Premium code] Auto refill AP khi nhân vật còn 0 AP
+- [Donater / Premium code] Auto Sweep cho mỗi nhân vật
 
 ==========
 
@@ -21,13 +24,13 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.6:
-- Thêm tính năng Tracked Avatar + (Sẽ ghi chú chi tiết hơn ở bản sau)
-- Xóa chức năng xóa nháy, thay bằng cách khác sẽ luôn gửi tiền tệ thành công
-- Sửa lấy public key bằng 9cscan giờ sẽ ok hơn trước
-- Thay đổi lựa chọn 1 Lấy Key ID cho phù hợp hơn
-- Thay đổi cách lấy title của mini
-- Cập nhật Planet lên planet-0.44.1-win-x64
+Thay đổi v0.7:
+- Thay cách lấy _cd.txt
+- Thay cách lấy Stage đã mở tránh trùng nhau giữa các ví
+- Thêm lựa chọn Skip nhanh tới Tracker Avatar +
+- Thêm tính năng lấy level Stake để tìm số AP tiêu hao
+- Thêm tính năng lấy ID item
+- Thêm tính năng auto Sweep cho từng nhân vật
 
 ==========
 
@@ -65,7 +68,8 @@ How to use:
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
 - Tracked Avatar - Check NCG and Crystal quickly
-- [Donater/Code Premium] Auto refill AP when the character has 0 AP
+- [Donater / Premium code] Auto refill AP when the character has 0 AP
+- [Donater / Premium code] Auto Sweep for each character
 
 ==========
 
@@ -74,13 +78,13 @@ Request:
 
 ==========
 
-Change v0.6:
-- Add features Tracked Avatar + (The English version will come later)
-- Delete the function remove quotes from string, replacing other function will always send money successfully
-- Repairing get public key with 9cscan will now be ok than before
-- Change the choice 1 Key ID to be more suitable
-- Change how to take the title of the mini
-- Update Planet up planet-0.44.1-win-x64
+Change v0.7:
+- Replace function get _cd.txt
+- Replace function get Stage opened prevent conflict
+- Add options skip to Tracker Avatar +
+- Add function get Stake level to find the AP consumption
+- Add function get item ID via html
+- Add Auto Sweep feature for each character
 
 ==========
 

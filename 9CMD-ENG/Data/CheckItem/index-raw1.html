@@ -1,0 +1,123 @@
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>9CMD Item</title>
+
+	<!-- INCLUDING JQUERY-->
+	<script src=
+"https://code.jquery.com/jquery-3.5.1.js">
+	</script>
+	<script src="..\..\..\..\..\..\Data\avatarAddress\lazysizes.min.js" async=""></script>
+
+	<!-- CSS FOR STYLING THE PAGE -->
+	<style>
+		table {
+			margin: 0 auto;
+			font-size: large;
+			border: 1px solid black;
+		}
+
+		h1 {
+			text-align: center;
+			color: #006600;
+			font-size: xx-large;
+			font-family: 'Gill Sans',
+				'Gill Sans MT', ' Calibri',
+				'Trebuchet MS', 'sans-serif';
+		}
+		h2 {
+			text-align: left;
+			color: #f44336;
+			font-size: xx-large;
+			font-family: 'Gill Sans',
+				'Gill Sans MT', ' Calibri',
+				'Trebuchet MS', 'sans-serif';
+		}		
+		td.equip {
+			background-color: #4caf50;
+			border: 1px solid black;
+		}
+		td {
+			background-color: #E4F5D4;
+			border: 1px solid black;
+		}
+
+		th,
+		td {
+			font-weight: bold;
+			border: 1px solid black;
+			padding: 10px;
+			text-align: center;
+		}
+
+		td {
+			font-weight: lighter;
+		}
+		element {
+			style: width: 30%;
+		}
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 140px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -75px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+	</style>
+</head>
+
+<body>
+	<section>
+		<h1>Tutorial here: <a href="https://9cmd.tanvpn.tk/" target="_blank"><img src="..\..\..\..\..\..\Data\avatarAddress\9cmd.png" alt="9cmd" style="width: 120;"></a></p></h1>
+		<h2>Warning:</h2>
+		<h3>Here are ALL the character items that own: item can be equipped, the item is crafting (or upgrade +) and the item is selling (or expiry) in the shop</h3>
+		<h3>You can only use items that can be equipped, select wrong, the Sweep transaction will not successful</h3>
+		<h3>Using the items being equipped is always successful!</h3>
+<div style="overflow-wrap: anywhere;">
+		<!-- TABLE CONSTRUCTION-->
+		<table id='table'>
+			<!-- HEADING FORMATION -->
+			<tr>
+				<th>STT</th>
+				<th>Image</th>
+				<th>Item Id</th>
+				<th>Index</th>
+				<th>Hammer</th>				
+				<th>Skills</th>
+			</tr>
+</div>
+			<script>
+				$(document).ready(function () {
+
+					// FETCHING DATA FROM JSON FILE
