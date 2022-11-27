@@ -3,6 +3,13 @@ TOoL cHo CHín cÊ
 
 ==========
 
+Sử dụng:
+- Chạy file 9CMD.bat đầu tiên, làm theo hướng dẫn và nhấn số từ bàn phím để tiếp tục...
+- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
+- User Guide for 9CMD: https://9cmd.tanvpn.tk/
+
+==========
+
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
 - Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
@@ -16,19 +23,10 @@ Yêu cầu:
 
 ==========
 
-Sử dụng:
-- Chạy file 9CMD.bat đầu tiên, làm theo hướng dẫn và nhấn số từ bàn phím để tiếp tục...
-- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
-
-==========
-
-Thay đổi v0.7:
-- Thay cách lấy _cd.txt
-- Thay cách lấy Stage đã mở tránh trùng nhau giữa các ví
-- Thêm lựa chọn Skip nhanh tới Tracker Avatar +
-- Thêm tính năng lấy level Stake để tìm số AP tiêu hao
-- Thêm tính năng lấy ID item
-- Thêm tính năng auto Sweep cho từng nhân vật
+Thay đổi v0.7.1:
+- Thay maxTurn là số turn tối đa với 120 AP
+- Thêm sau 5s tự chọn tiếp tục sử dụng dữ liệu cũ cho Tracked Avatar +
+- Thêm kiểm tra từng giao dịch trước khi bắt đầu auto (chặn spam giao dịch failure nếu có)
 
 ==========
 
@@ -42,9 +40,11 @@ Vài đoạn mã lấy trên mạng như gõ mật khẩu ẩn, lấy dữ liệ
 
 Theo dõi kênh Youtube của tôi để biết thêm vài mẹo hữu ích cho Nine Chronicles tại https://www.youtube.com/c/tanbt
 
-Thư mục PASSWORD và USER bạn có thể xóa, còn lại thì không 🐧
+Thư mục PASSWORD và USER bạn có thể xóa, còn lại thì không 🐧. Hoặc sao chép và dán tương ứng cho phiên bản mới để backup dữ liệu cá nhân
 
 Do tool cần nhập mật khẩu, tải ở github của tôi sẽ an toàn, tải tool ở nơi khác về bay acc xin phép không chịu trách nhiệm :v
+
+Chức năng auto có gửi dữ liệu ví sử dụng cho tôi để sử dụng được auto bao gồm đại chỉ ví, địa chỉ nhân vật, premium code, stage sweep, số AP cho 1 lần sweep, world theo stage tương ứng và id trang bị nếu có. Nói chung không phải thông tin nhạy cảm :vv
 
 Gửi tôi cốc crystal qua ví ☕ 0x6374FE5F54CdeD72Ff334d09980270c61BC95186 check... check...
 

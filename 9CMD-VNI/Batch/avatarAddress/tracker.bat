@@ -28,10 +28,10 @@ rem Lấy ví đang được lưu
 set /p _vi=<%_cd%\user\trackedAvatar\%_folderVi%\_vi.txt
 call :background
 echo.Đã tồn tại thư mục vi%_stt% trong bộ nhớ
-echo.[1] Vẫn dùng dữ liệu cũ
+echo.[1] Vẫn dùng dữ liệu cũ, tự động chọn sau 5s
 echo.[2] Xóa dữ liệu ví cũ và tạo mới
 echo.[3] Thoát
-choice /c 123 /n /m "Nhập từ bàn phím: "
+choice /c 123 /n /t 5 /d 1 /m "Nhập từ bàn phím: "
 echo.└── Đang xử lý ...
 if %errorlevel%==3 (echo.└──── Thoát sau 5s ... & timeout 5 & exit)
 if %errorlevel%==1 (goto :duLieuViCu)
@@ -242,7 +242,7 @@ rem Tự động refill AP
 if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% == 0 (if %_autoRefillAP% == 1 (echo.└── Đang Refill AP nhân vật: %_name% ... & call :autoRefillAP)))))
 rem Tự động sweep
 set /a _howManyAP=%_stakeAP%*%_howManyTurn%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (echo.└── Đang Auto Sweep nhân vật: %_name% ... & call :autoSweep)))
+if %_canAutoOnOff% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (echo.└── Đang Auto Sweep nhân vật: %_name% ... & call :autoSweep))))
 exit /b
 :background3
 call :background
@@ -323,8 +323,7 @@ echo.==========
 echo.[40;97mMenu Auto Refill AP[40;96m
 echo.[1..5] Nhập đủ mới có thể Auto
 echo.==========
-echo.[6] Quay lại
-echo.[7] Quay lại
+echo.[6, 7] Quay lại
 echo.[8] Bật / Tắt Auto Refill AP tổng
 echo.[9] Chuyển sang cài đặt [40;97mAuto Sweep[40;96m
 choice /c 123456789 /n /m "Nhập số từ bàn phím: "
@@ -360,9 +359,8 @@ echo.[3] Nhập số turn trong 1 lệnh Sweep
 echo.==========
 echo.[4] Chuyển sang nhân vật tiếp theo
 echo.[5] Bật / Tắt Auto Sweep cho [40;97m%_name%[40;96m
-echo.[6] Đang hoàn thiện
 echo.==========
-echo.[7] Quay lại
+echo.[6, 7] Quay lại
 echo.[8] Bật / Tắt Auto Sweep tổng
 echo.[9] Chuyển sang cài đặt [40;97mAuto Refill AP[40;96m
 choice /c 123456789 /n /m "Nhập số từ bàn phím: "
@@ -383,12 +381,12 @@ goto :gotoSweep1
 :howManyTurn
 call :background3 %_charCount%
 echo.[40;96m==========
-set /a _maxTurn=%_actionPoint%/%_stakeAP%
+set /a _maxTurn=120/%_stakeAP%
 set _maxTurn=  %_maxTurn%
 echo.╔═══════════════╗   ╔═══════════════╗
 echo ║AP/turn: %_stakeAP%	║   ║Max turn:	%_maxTurn:~-2%%  ║
 echo.╚═══════════════╝   ╚═══════════════╝
-set /a _maxTurn=%_actionPoint%/%_stakeAP%
+set /a _maxTurn=120/%_stakeAP%
 echo.
 echo.==========
 rem Reset _pickHowManyTurn
@@ -399,10 +397,10 @@ echo.
 if "%_pickHowManyTurn%" == "waybackhome" (set "_pickHowManyTurn=" & goto :gotoSweep1)
 rem Ktra có để trống hay không
 if [%_pickHowManyTurn%] == [] (echo Lỗi 1: Dữ liệu nhập trống, thử lại ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
-rem Ktra sweep có là số hay không
+rem Ktra turn có là số hay không
 set "var="&for /f "delims=0123456789" %%i in ("%_pickHowManyTurn%") do set var=%%i
 if defined var (echo Lỗi 2: Sai cú pháp, thử lại ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
-rem Ktra stage có lớn hơn stage mà nhân vật đã mở hay không
+rem Ktra turn có lớn hơn max turn hay không
 if %_pickHowManyTurn% gtr %_maxTurn% (echo Lỗi 3: %_pickHowManyTurn% lớn hơn %_maxTurn% turn có thể sweep, thử lại ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
 echo %_pickHowManyTurn% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_howManyTurn.txt
 goto :gotoSweep1
@@ -1155,6 +1153,10 @@ if %_NCGbuyi%==8 echo %*> _NCGticker.txt 2>nul
 if %_NCGbuyi%==10 echo %*> _NCGbuy.txt 2>nul & set /p _NCGbuy=<_NCGbuy.txt & set /a _NCGbuy=%_NCGbuy:~0,-2% & del /q _NCGbuy.txt
 set /a _NCGbuyi+=1
 exit /b
+:idCheckStatus
+rem Kiểm tra từng giao dịch
+curl https://api.9cscan.com/transactions/%*/status --ssl-no-revoke>nul 
+exit /b
 :ReadJsonbat
 "%_cd%\batch\jq" -r "..|.%1?|select(.)" %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json> %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json
@@ -1167,6 +1169,13 @@ md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 echo off
+echo ==========
+echo Bước 0: Kiểm tra những lệnh Refill AP trước
+rem Kiểm tra những giao dịch trước có thành công hay không
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+set "_idCheckStatus="
+for /f "tokens=*" %%a in (_idCheckStatus.txt) do call :idCheckStatus %%a
+echo.└──── Hoàn thành bước 0
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
 rem Gửi thông tin của bạn tới server của tôi
@@ -1242,9 +1251,10 @@ set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Refill AP đang diễn ra & echo.─── kiểm tra lại sau 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
 if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP thất bại & echo.─── đợi 10p sau thử lại auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Refill AP tạm thời thất bại & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP thất bại & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP thành công & echo.─── quay lại menu ... & timeout 10 & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
-color 4F & echo.─── Lỗi 2: Lỗi không xác định & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Đang cập nhật ... & goto :duLieuViCu
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP thất bại & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
 goto :duLieuViCu
 :autoSweep
 rem Tạo thư mục lưu dữ liệu
@@ -1256,6 +1266,13 @@ copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep\_itemEquip.json> _itemIDList.json 2>nul
 set /p _itemIDList=<_itemIDList.json
 echo off
+rem Kiểm tra những giao dịch trước có thành công hay không
+echo ==========
+echo Bước 0: Kiểm tra những lệnh Refill AP trước
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep7^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+set "_idCheckStatus="
+for /f "tokens=*" %%a in (_idCheckStatus.txt) do call :idCheckStatus %%a
+echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
@@ -1347,7 +1364,8 @@ set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Sweep đang diễn ra & echo.─── kiểm tra lại sau 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
 if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep thất bại & echo.─── đợi 10p sau thử lại auto Sweep, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Sweep tạm thời thất bại & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep thất bại & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep thành công & echo.─── quay lại menu ... & timeout 10 & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
-color 4F & echo.─── Lỗi 2: Lỗi không xác định & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Đang cập nhật ... & goto :duLieuViCu
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep thất bại & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── tắt auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
 goto :duLieuViCu

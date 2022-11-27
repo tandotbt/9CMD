@@ -3,6 +3,13 @@ TOoL fOR nINe CHrOnicleS
 
 ==========
 
+How to use:
+- Run first 9cmd.bat file, follow the instructions and press number from the keyboard to continue...
+- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
+- User Guide for 9CMD: https://9cmd.tanvpn.tk/
+
+==========
+
 Feature:
 - Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
 - Tracked Avatar - Check NCG and Crystal quickly
@@ -16,19 +23,10 @@ Request:
 
 ==========
 
-How to use:
-- Run first 9cmd.bat file, follow the instructions and press number from the keyboard to continue...
-- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
-
-==========
-
-Change v0.7:
-- Replace function get _cd.txt
-- Replace function get Stage opened prevent conflict
-- Add options skip to Tracker Avatar +
-- Add function get Stake level to find the AP consumption
-- Add function get item ID via html
-- Add Auto Sweep feature for each character
+Change v0.7.1:
+- Replace maxTurn is the maximum number of turns with 120 AP
+- Add after 5s, choose to continue using the old data for Tracked Avatar +
+- Add Check each transaction before start Auto (block the Failure transaction if any)
 
 ==========
 
@@ -42,9 +40,11 @@ A few codes taken online such as hidden password, taking data from the results o
 
 Subscribe my YouTube channel for some more useful tips for Nine Chronicles at https://www.youtube.com/c/tanbt
 
-PASSWORD and USER folder you can delete, file remaining is not 🐧
+PASSWORD and USER folder you can delete, file remaining is not 🐧. Or copy and paste corresponding to the new version to backup personal data
 
 Because 9CMD tool needs to enter password, download in my github will be safe, download elsewhere maybe lose account, not be responsible :v
+
+The Auto function need sent me personal data including id wallet, character address, premium code, stage sweep, AP number for 1 Sweep, World according to the corresponding Stage and ID equipped if have. Overall, it not sensitive information :vv
 
 Send me a crystal cup via wallet ☕ 0x6374FE5F54CdeD72Ff334d09980270c61BC95186 check... check...
 

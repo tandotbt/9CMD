@@ -8,6 +8,7 @@ TOoL cHo CHín cÊ
 Sử dụng:
 - Chạy file 9CMD.bat đầu tiên, làm theo hướng dẫn và nhấn số từ bàn phím để tiếp tục...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
+- User Guide for 9CMD: https://9cmd.tanvpn.tk/
 
 ==========
 
@@ -24,13 +25,10 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.7:
-- Thay cách lấy _cd.txt
-- Thay cách lấy Stage đã mở tránh trùng nhau giữa các ví
-- Thêm lựa chọn Skip nhanh tới Tracker Avatar +
-- Thêm tính năng lấy level Stake để tìm số AP tiêu hao
-- Thêm tính năng lấy ID item
-- Thêm tính năng auto Sweep cho từng nhân vật
+Thay đổi v0.7.1:
+- Thay maxTurn là số turn tối đa với 120 AP
+- Thêm sau 5s tự chọn tiếp tục sử dụng dữ liệu cũ cho Tracked Avatar +
+- Thêm kiểm tra từng giao dịch trước khi bắt đầu auto (chặn spam giao dịch failure nếu có)
 
 ==========
 
@@ -44,14 +42,15 @@ Vài đoạn mã lấy trên mạng như gõ mật khẩu ẩn, lấy dữ liệ
 
 Theo dõi kênh Youtube của tôi để biết thêm vài mẹo hữu ích cho Nine Chronicles tại https://www.youtube.com/c/tanbt
 
-Thư mục PASSWORD và USER bạn có thể xóa, còn lại thì không 🐧
+Thư mục PASSWORD và USER bạn có thể xóa, còn lại thì không 🐧. Hoặc sao chép và dán tương ứng cho phiên bản mới để backup dữ liệu cá nhân
 
 Do tool cần nhập mật khẩu, tải ở github của tôi sẽ an toàn, tải tool ở nơi khác về bay acc xin phép không chịu trách nhiệm :v
+
+Chức năng auto có gửi dữ liệu ví sử dụng cho tôi để sử dụng được auto bao gồm đại chỉ ví, địa chỉ nhân vật, premium code, stage sweep, số AP cho 1 lần sweep, world theo stage tương ứng và id trang bị nếu có. Nói chung không phải thông tin nhạy cảm :vv
 
 Gửi tôi cốc crystal qua ví ☕ 0x6374FE5F54CdeD72Ff334d09980270c61BC95186 check... check...
 
 Đeo tai nghe để có trải nghiệm tốt nhất!
-
 ==========
 
 # 9CDM - ENG
@@ -62,6 +61,7 @@ TOoL fOR nINe CHrOnicleS
 How to use:
 - Run first 9cmd.bat file, follow the instructions and press number from the keyboard to continue...
 - Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
+- User Guide for 9CMD: https://9cmd.tanvpn.tk/
 
 ==========
 
@@ -78,13 +78,10 @@ Request:
 
 ==========
 
-Change v0.7:
-- Replace function get _cd.txt
-- Replace function get Stage opened prevent conflict
-- Add options skip to Tracker Avatar +
-- Add function get Stake level to find the AP consumption
-- Add function get item ID via html
-- Add Auto Sweep feature for each character
+Change v0.7.1:
+- Replace maxTurn is the maximum number of turns with 120 AP
+- Add after 5s, choose to continue using the old data for Tracked Avatar +
+- Add Check each transaction before start Auto (block the Failure transaction if any)
 
 ==========
 
@@ -98,9 +95,11 @@ A few codes taken online such as hidden password, taking data from the results o
 
 Subscribe my YouTube channel for some more useful tips for Nine Chronicles at https://www.youtube.com/c/tanbt
 
-PASSWORD and USER folder you can delete, file remaining is not 🐧
+PASSWORD and USER folder you can delete, file remaining is not 🐧. Or copy and paste corresponding to the new version to backup personal data
 
 Because 9CMD tool needs to enter password, download in my github will be safe, download elsewhere maybe lose account, not be responsible :v
+
+The Auto function need sent me personal data including id wallet, character address, premium code, stage sweep, AP number for 1 Sweep, World according to the corresponding Stage and ID equipped if have. Overall, it not sensitive information :vv
 
 Send me a crystal cup via wallet ☕ 0x6374FE5F54CdeD72Ff334d09980270c61BC95186 check... check...
 

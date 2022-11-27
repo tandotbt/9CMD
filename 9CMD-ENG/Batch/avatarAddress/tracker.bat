@@ -28,10 +28,10 @@ rem Get the wallet being saved
 set /p _vi=<%_cd%\user\trackedAvatar\%_folderVi%\_vi.txt
 call :background
 echo.Existing folders vi%_stt% in memory
-echo.[1] Still using old data
+echo.[1] Still using old data, automatically select after 5s
 echo.[2] Delete old and creat new wallet data
 echo.[3] Quit
-choice /c 123 /n /m "Enter from the keyboard: "
+choice /c 123 /n /t 5 /d 1 /m "Enter from the keyboard: "
 echo.└── Processing ...
 if %errorlevel%==3 (echo.└──── Quit after 5s ... & timeout 5 & exit)
 if %errorlevel%==1 (goto :duLieuViCu)
@@ -242,7 +242,7 @@ rem Check can auto refill AP or not
 if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% == 0 (if %_autoRefillAP% == 1 (echo.└── Start Auto Refill AP character: %_name% ... & call :autoRefillAP)))))
 rem Check can Auto sweep or not
 set /a _howManyAP=%_stakeAP%*%_howManyTurn%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (echo.└── Start Auto Sweep characters: %_name% ... & call :autoSweep)))
+if %_canAutoOnOff% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (echo.└── Start Auto Sweep characters: %_name% ... & call :autoSweep))))
 exit /b
 :background3
 call :background
@@ -323,8 +323,7 @@ echo.==========
 echo.[40;97mMenu Auto Refill AP[40;96m
 echo.[1..5] Enter enough to auto
 echo.==========
-echo.[6] Return
-echo.[7] Return
+echo.[6, 7] Return
 echo.[8] Turn on / off auto Refill AP main
 echo.[9] Switch to settings [40;97mAuto Sweep[40;96m
 choice /c 123456789 /n /m "Enter the number from the keyboard: "
@@ -360,9 +359,8 @@ echo.[3] Enter the number of turn in each Sweep transaction
 echo.==========
 echo.[4] Switch to the next character
 echo.[5] Turn on / off auto Sweep for [40;97m%_name%[40;96m
-echo.[6] Improvement
 echo.==========
-echo.[7] Return
+echo.[6, 7] Return
 echo.[8] Turn on / off auto Sweep main
 echo.[9] Switch to settings [40;97mAuto Refill AP[40;96m
 choice /c 123456789 /n /m "Enter the number from the keyboard: "
@@ -383,12 +381,12 @@ goto :gotoSweep1
 :howManyTurn
 call :background3 %_charCount%
 echo.[40;96m==========
-set /a _maxTurn=%_actionPoint%/%_stakeAP%
+set /a _maxTurn=120/%_stakeAP%
 set _maxTurn=  %_maxTurn%
 echo.╔═══════════════╗   ╔═══════════════╗
 echo ║AP/turn: %_stakeAP%	║   ║Max turn:	%_maxTurn:~-2%%  ║
 echo.╚═══════════════╝   ╚═══════════════╝
-set /a _maxTurn=%_actionPoint%/%_stakeAP%
+set /a _maxTurn=120/%_stakeAP%
 echo.
 echo.==========
 rem Reset _pickHowManyTurn
@@ -399,10 +397,10 @@ echo.
 if "%_pickHowManyTurn%" == "waybackhome" (set "_pickHowManyTurn=" & goto :gotoSweep1)
 rem Check whether it is empty or not
 if [%_pickHowManyTurn%] == [] (echo Error 1: Enter empty, try again ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
-rem Check whether the sweep is the number or not
+rem Check whether the turn is the number or not
 set "var="&for /f "delims=0123456789" %%i in ("%_pickHowManyTurn%") do set var=%%i
 if defined var (echo Error 2: Wrong type input, try again ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
-rem Check if the stage is > the stage that the character has opened or not
+rem Check if the turn is > the max turn or not
 if %_pickHowManyTurn% gtr %_maxTurn% (echo Error 3: %_pickHowManyTurn% larger than %_maxTurn% turn can sweep, try again ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
 echo %_pickHowManyTurn% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_howManyTurn.txt
 goto :gotoSweep1
@@ -1160,6 +1158,10 @@ if %_NCGbuyi%==8 echo %*> _NCGticker.txt 2>nul
 if %_NCGbuyi%==10 echo %*> _NCGbuy.txt 2>nul & set /p _NCGbuy=<_NCGbuy.txt & set /a _NCGbuy=%_NCGbuy:~0,-2% & del /q _NCGbuy.txt
 set /a _NCGbuyi+=1
 exit /b
+:idCheckStatus
+rem Check each transaction
+curl https://api.9cscan.com/transactions/%*/status --ssl-no-revoke>nul 
+exit /b
 :ReadJsonbat
 "%_cd%\batch\jq" -r "..|.%1?|select(.)" %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json> %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json
@@ -1172,6 +1174,12 @@ md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 echo off
+echo Step 0: Check previous Refill AP transactions
+rem Check whether the previous transactions are successful or not
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+set "_idCheckStatus="
+for /f "tokens=*" %%a in (_idCheckStatus.txt) do call :idCheckStatus %%a
+echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
 echo Step 1: Get unsignedTransaction
@@ -1247,9 +1255,10 @@ set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Refill AP happenning & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
 if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after trying again & echo.───  auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Refill AP temporary failure & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Updating ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP successful & echo.─── return menu ... & timeout 10 & echo.└──── Updating ... & goto :duLieuViCu)
-color 4F & echo.─── Error 2: Unknown error & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Updating ... & goto :duLieuViCu
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
 goto :duLieuViCu
 :autoSweep
 rem Create data saving folders
@@ -1261,6 +1270,12 @@ copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep\_itemEquip.json> _itemIDList.json 2>nul
 set /p _itemIDList=<_itemIDList.json
 echo off
+echo Step 0: Check previous Refill AP transactions
+rem Check whether the previous transactions are successful or not
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep7^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+set "_idCheckStatus="
+for /f "tokens=*" %%a in (_idCheckStatus.txt) do call :idCheckStatus %%a
+echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
 echo Step 1: Get unsignedTransaction
@@ -1352,7 +1367,8 @@ set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Sweep happenning & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
 if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again & echo.───  auto Sweep, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Sweep temporary failure & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Updating ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep successful & echo.─── return menu ... & timeout 10 & echo.└──── Updating ... & goto :duLieuViCu)
-color 4F & echo.─── Error 2: Unknown error & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout 10 & echo.└──── Updating ... & goto :duLieuViCu
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
 goto :duLieuViCu
