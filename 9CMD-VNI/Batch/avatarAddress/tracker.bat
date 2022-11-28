@@ -242,7 +242,7 @@ rem Tự động refill AP
 if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% == 0 (if %_autoRefillAP% == 1 (echo.└── Đang Refill AP nhân vật: %_name% ... & call :autoRefillAP)))))
 rem Tự động sweep
 set /a _howManyAP=%_stakeAP%*%_howManyTurn%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (echo.└── Đang Auto Sweep nhân vật: %_name% ... & call :autoSweep))))
+if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (echo.└── Đang Auto Sweep nhân vật: %_name% ... & call :autoSweep)))))
 exit /b
 :background3
 call :background
@@ -1268,7 +1268,7 @@ set /p _itemIDList=<_itemIDList.json
 echo off
 rem Kiểm tra những giao dịch trước có thành công hay không
 echo ==========
-echo Bước 0: Kiểm tra những lệnh Refill AP trước
+echo Bước 0: Kiểm tra những lệnh Sweep trước
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep7^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do call :idCheckStatus %%a

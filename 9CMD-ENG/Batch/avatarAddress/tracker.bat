@@ -242,7 +242,7 @@ rem Check can auto refill AP or not
 if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% == 0 (if %_autoRefillAP% == 1 (echo.└── Start Auto Refill AP character: %_name% ... & call :autoRefillAP)))))
 rem Check can Auto sweep or not
 set /a _howManyAP=%_stakeAP%*%_howManyTurn%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (echo.└── Start Auto Sweep characters: %_name% ... & call :autoSweep))))
+if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (echo.└── Đang Auto Sweep nhân vật: %_name% ... & call :autoSweep)))))
 exit /b
 :background3
 call :background
@@ -1270,7 +1270,7 @@ copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep\_itemEquip.json> _itemIDList.json 2>nul
 set /p _itemIDList=<_itemIDList.json
 echo off
-echo Step 0: Check previous Refill AP transactions
+echo Step 0: Check previous Sweep transactions
 rem Check whether the previous transactions are successful or not
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep7^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
