@@ -11,7 +11,7 @@ echo [3] Giới thiệu
 echo.[4] Hướng dẫn sử dụng
 echo.
 echo.       Một sản phẩm make color :v
-echo.      === Phiên bản: [0.7.1] ===
+echo.      === Phiên bản: [0.7.2] ===
 choice /c 1234 /n /m "Nhập từ bàn phím: "
 if %errorlevel% == 1 (call %_cd%\Batch\enterUTC.bat)
 if %errorlevel% == 2 (goto :tinhNang)

@@ -25,10 +25,9 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.7.1:
-- Thay maxTurn là số turn tối đa với 120 AP
-- Thêm sau 5s tự chọn tiếp tục sử dụng dữ liệu cũ cho Tracked Avatar +
-- Thêm kiểm tra từng giao dịch trước khi bắt đầu auto (chặn spam giao dịch failure nếu có)
+Thay đổi v0.7.2:
+- Sửa bật / tắt auto Sweep tổng không có tác dụng
+- Sửa đường link nhận ảnh trang bị
 
 ==========
 
@@ -78,10 +77,9 @@ Request:
 
 ==========
 
-Change v0.7.1:
-- Replace maxTurn is the maximum number of turns with 120 AP
-- Add after 5s, choose to continue using the old data for Tracked Avatar +
-- Add Check each transaction before start Auto (block the Failure transaction if any)
+Change v0.7.2:
+- Fix turn on / off Auto Sweep main no effect
+- Fix link picture equipment
 
 ==========
 

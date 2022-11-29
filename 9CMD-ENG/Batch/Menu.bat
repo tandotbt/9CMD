@@ -11,7 +11,7 @@ echo [3] Introduce
 echo [4] User guide
 echo.
 echo.           A product ra dẻ :v
-echo.        === Version: [0.7.1] ===
+echo.        === Version: [0.7.2] ===
 choice /c 1234 /n /m "Enter from the keyboard: "
 if %errorlevel% == 1 (call %_cd%\Batch\enterUTC.bat)
 if %errorlevel% == 2 (goto :tinhNang)
