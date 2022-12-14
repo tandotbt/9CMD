@@ -106,21 +106,24 @@ set /a _j=1
 call :background
 echo.[*] Processing...
 del /q %_cd%\batch\avatarAddress\_temp.json
+set /a _sumNCG=0 & set /a _sumCRYSTAL=0
 :hienThongTin
 cd %_cd%\batch\avatarAddress
-jq -r ".[%_j%]|.vi?|select(.)" oldData.json> _vi.json
+jq -r ".[%_j%]|.vi?|select(.)" oldData.json > _vi.json
 set /p _vi=<_vi.json
-jq -r ".[%_j%]|.ncg?|select(.)" oldData.json> _ncg.json
+jq -r ".[%_j%]|.ncg?|select(.)" oldData.json > _ncg.json
 set /p _ncg=<_ncg.json
 rem Delete decimal
 set /a _ncg=%_ncg%
+set /a _sumNCG+=%_ncg%
 set _ncg=               %_ncg%
-jq -r ".[%_j%]|.crystal?|select(.)" oldData.json> _crystal.json
+jq -r ".[%_j%]|.crystal?|select(.)" oldData.json > _crystal.json
 set /p _crystal=<_crystal.json
 rem Delete decimal
 set /a _crystal=%_crystal%
+set /a _sumCRYSTAL+=%_crystal%
 set _crystal=               %_crystal%
-echo.[%_j%]Ví		 : %_vi:~0,7%***		%_ncg:~-15%		%_crystal:~-15%>> _temp.json
+echo.[%_j%]Ví		 : %_vi:~0,7%***		%_ncg:~-15%		%_crystal:~-15% >> _temp.json
 set /a _j+=1
 if not %_i%==%_j% (goto :hienThongTin)
 cd %_cd%\batch\avatarAddress
@@ -131,6 +134,10 @@ if %_i% gtr 15 (mode con:cols=100 lines=40 & cls & type %_cd%\Data\avatarAddress
 echo.[*]Use node	: %_node%			           NCG                 CRYSTAL
 cd %_cd%\batch\avatarAddress
 more _temp.json
+echo.==========
+set _sumNCG=               %_sumNCG%
+set _sumCRYSTAL=               %_sumCRYSTAL%
+echo [*]Total	:			%_sumNCG:~-14%		%_sumCRYSTAL:~-14%
 echo.==========
 set /a _j+=-1
 echo.[1..%_j%] Tracked Avatar plus

@@ -16,7 +16,9 @@ echo Enter wallet (B)
 echo.
 cd %_cd%\batch
 set /p _viB="Enter wallet B: "
-echo %_viB% > %_cd%\user\_viB.txt
+rem Delete spaces
+set _viB=%_viB: =%
+echo %_viB%> %_cd%\user\_viB.txt
 rem Check balance
 echo {"query":"query{stateQuery{agent(address:\"%_viB%\"){crystal}}goldBalance(address: \"%_viB%\" )}"} > input.json
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql

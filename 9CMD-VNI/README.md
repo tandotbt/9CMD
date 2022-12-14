@@ -23,9 +23,16 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.7.2:
-- Sửa bật / tắt auto Sweep tổng không có tác dụng
-- Sửa đường link nhận ảnh trang bị
+Thay đổi v0.7.3:
+- Sửa lỗi khoẳng trắng với mini nhập ví
+- Sửa lỗi khi ví có ncg và crystal nhỏ hơn 10
+- Sửa lỗi khi stage đã mở nhỏ hơn 10
+- Sửa nhập public key bằng 9cscan
+- Sửa lỗi khi Stage bằng 50
+- Thêm nhận biến _node
+- Thêm nhiều tùy chọn rác, tránh nhấn nhầm xóa hết dữ liệu
+- Thêm tính tổng Crystal và NCG
+- Thay đổi bước 0 cho phù hợp
 
 ==========
 

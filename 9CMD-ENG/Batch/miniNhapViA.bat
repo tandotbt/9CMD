@@ -22,7 +22,9 @@ del _allKey.txt
 cd %_cd%\batch
 echo.
 set /p _viA="Enter wallet A: "
-echo %_viA% > %_cd%\user\_viA.txt
+rem Delete spaces
+set _viA=%_viA: =%
+echo %_viA%> %_cd%\user\_viA.txt
 rem Check balance
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql

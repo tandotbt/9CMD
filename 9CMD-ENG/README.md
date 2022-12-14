@@ -23,9 +23,16 @@ Request:
 
 ==========
 
-Change v0.7.2:
-- Fix turn on / off Auto Sweep main no effect
-- Fix link picture equipment
+Change v0.7.3:
+- Fix the space error with the mini import wallet
+- Fix errors when the wallet has NCG and Crystal less than 10
+- Fix errors when the stage has opened less than 10
+- Fix import public key with 9cscan
+- Fix errors when the stage equal 50
+- Add variables _node
+- Add more garbage options, avoid pressing delete all the data
+- Add total Crystal and NCG
+- Change step 0
 
 ==========
 

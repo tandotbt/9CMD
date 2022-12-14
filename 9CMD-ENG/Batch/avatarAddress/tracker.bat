@@ -11,6 +11,8 @@ set _canAuto=0
 set /a _HanSuDung=0
 set /a _chuyendoi=0
 set /a _premiumTXOK=0 & set /a _passwordOK=0 & set /a _publickeyOK=0 & set /a _keyidOK=0 & set /a _canAutoOnOff=0 & set /a _utcFileOK=0 & set /a _autoRefillAP=0 & set /a _autoSweepOnOffAll=0
+set /p _node=<%_cd%\data\_node.txt
+set _node=%_node: =%
 :BatDau
 rem setlocal ENABLEDELAYEDEXPANSION
 rem Set %_cd% origin
@@ -29,13 +31,17 @@ set /p _vi=<%_cd%\user\trackedAvatar\%_folderVi%\_vi.txt
 call :background
 echo.Existing folders vi%_stt% in memory
 echo.[1] Still using old data, automatically select after 5s
-echo.[2] Delete old and creat new wallet data
+echo.[2] Quit
 echo.[3] Quit
-choice /c 123 /n /t 5 /d 1 /m "Enter from the keyboard: "
+echo.[4] Quit
+echo.[5] Delete old and creat new wallet data
+choice /c 12345 /n /t 5 /d 1 /m "Enter from the keyboard: "
 echo.└── Processing ...
+if %errorlevel%==2 (echo.└──── Quit after 5s ... & timeout 5 & exit)
 if %errorlevel%==3 (echo.└──── Quit after 5s ... & timeout 5 & exit)
+if %errorlevel%==4 (echo.└──── Quit after 5s ... & timeout 5 & exit)
 if %errorlevel%==1 (goto :duLieuViCu)
-if %errorlevel%==2 (rd /s /q %_cd%\User\trackedAvatar\%_folderVi%) 
+if %errorlevel%==5 (rd /s /q %_cd%\User\trackedAvatar\%_folderVi%) 
 :noFolder
 rem Create folders to save wallet data
 cd %_cd%\User\trackedAvatar\
@@ -57,7 +63,7 @@ cd %_cd%\batch\avatarAddress
 curl https://api.9cscan.com/account?address=%_vi% --ssl-no-revoke> %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json 2>nul
 rem Take the number of characters
 echo.└──── Take the number of characters ...
-jq "length" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json> %_cd%\user\trackedAvatar\%_folderVi%\_length.txt 2>nul
+jq "length" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json > %_cd%\user\trackedAvatar\%_folderVi%\_length.txt 2>nul
 set /p _length=<%_cd%\user\trackedAvatar\%_folderVi%\_length.txt
 if not %_length% geq 1 (if %_length% leq 4 (echo. & echo Error 1: Wrong wallet or 9cscan error 404, try again ... & color 4F & timeout 5 & goto :BatDau))
 set /a _length+=-1
@@ -70,7 +76,7 @@ curl --header "Content-Type: application/json" --data "@input.json" --show-error
 echo 5 > _stakeAP.txt
 rem Filter the results of data
 findstr /i null output.json> nul
-if %errorlevel% == 1 ("%_cd%\batch\jq.exe" -r ".data.stateQuery.stakeStates|.[]|.deposit|tonumber|if . > 500000 then 3 elif . > 5000 then 4 else 5 end" output.json> _stakeAP.txt 2>nul)
+if %errorlevel% == 1 ("%_cd%\batch\jq.exe" -r ".data.stateQuery.stakeStates|.[]|.deposit|tonumber|if . > 500000 then 3 elif . > 5000 then 4 else 5 end" output.json > _stakeAP.txt 2>nul)
 set /p _stakeAP=<_stakeAP.txt & set /a _stakeAP=%_stakeAP% 2>nul
 rem Delete the draft file input and output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\input.json 2>nul
@@ -104,8 +110,8 @@ jq "{sec: ((.timeCount*12)%%60),minute: ((((.timeCount*12)-(.timeCount*12)%%60)/
 jq -j """\(.hours):\(.minute):\(.sec)""" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.txt 2>nul
 jq -r ".address" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt 2>nul
 jq -r ".name" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_name.txt 2>nul
-jq -r ".level" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_level.txt 2>nul
-jq -r ".actionPoint" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_actionPoint.txt 2>nul
+jq -r ".level" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_level.txt 2>nul
+jq -r ".actionPoint" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_actionPoint.txt 2>nul
 jq -r ".timeCount" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_timeCount.txt 2>nul
 rem Get opened stage
 echo.└────── Get opened stage ...
@@ -115,7 +121,7 @@ echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_AddressChar%\"){stageMa
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 rem Filter the results of data
-"%_cd%\batch\jq.exe" -r "..|.count?|select(.)" output.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_stage.txt 2>nul
+"%_cd%\batch\jq.exe" -r "..|.count?|select(.)" output.json > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_stage.txt 2>nul
 rem Delete the draft file input and output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\input.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\output.json 2>nul
@@ -124,7 +130,7 @@ set /p _stage=<_stage.txt
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep"
 if not exist %_folder% (md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep)
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_stageSweepRandom.txt"
-if not exist %_file% (echo %_stage%> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_stageSweepRandom.txt)
+if not exist %_file% (echo %_stage% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_stageSweepRandom.txt)
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_howManyTurn.txt"
 if not exist %_file% (echo 0 > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_howManyTurn.txt)
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_autoSweepOnOffChar.txt"
@@ -182,7 +188,7 @@ goto :displayVi
 :background
 cd %_cd%
 color 0B
-title Wallet [%_stt%][%_vi%]
+title Wallet [%_stt%] [%_vi%]
 cls
 set /a _canAuto=%_premiumTXOK% + %_passwordOK% + %_publickeyOK% + %_KeyIDOK% + %_utcFileOK%
 echo.╔═══════════════╗   ╔═══════════════╗   ╔═══════════════╗
@@ -206,10 +212,10 @@ if %skiplines% gtr 0 set skip=skip=%skiplines%
 for /f "usebackq %skip% delims=" %%a in (%INPUT_FILE%) do set "randline=%%a" & goto continueBackground2
 :continueBackground2
 rem echo Line #%randnum% is:
-echo/%randline%> _stageSweep.txt
+echo/%randline% > _stageSweep.txt
 set /p _stageSweep=<_stageSweep.txt & set /p _autoSweepOnOffChar=<_autoSweepOnOffChar.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweep=%_stageSweep% 2>nul & set /a _autoSweepOnOffChar=%_autoSweepOnOffChar% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
-if %_stageSweep% lss 50 (echo 1 > _world.txt 2>nul)
+if %_stageSweep% leq 50 (echo 1 > _world.txt 2>nul)
 if %_stageSweep% leq 100 (if %_stageSweep% geq 51 (echo 2 > _world.txt 2>nul))
 if %_stageSweep% leq 150 (if %_stageSweep% geq 101 (echo 3 > _world.txt 2>nul))
 if %_stageSweep% leq 200 (if %_stageSweep% geq 151 (echo 4 > _world.txt 2>nul))
@@ -239,10 +245,10 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
 rem Check can auto refill AP or not
-if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% == 0 (if %_autoRefillAP% == 1 (echo.└── Start Auto Refill AP character: %_name% ... & call :autoRefillAP)))))
+if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% == 0 (if %_autoRefillAP% == 1 (call :autoRefillAP)))))
 rem Check can Auto sweep or not
 set /a _howManyAP=%_stakeAP%*%_howManyTurn%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (echo.└── Đang Auto Sweep nhân vật: %_name% ... & call :autoSweep)))))
+if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepOnOffChar% == 1 (if %_howManyTurn% gtr 0 (if %_howManyAP% leq %_actionPoint% (call :autoSweep)))))
 exit /b
 :background3
 call :background
@@ -264,10 +270,10 @@ if %skiplines% gtr 0 set skip=skip=%skiplines%
 for /f "usebackq %skip% delims=" %%a in (%INPUT_FILE%) do set "randline=%%a" & goto continueBackground3
 :continueBackground3
 rem echo Line #%randnum% is:
-echo/%randline%> _stageSweep.txt
+echo/%randline% > _stageSweep.txt
 set /p _stageSweep=<_stageSweep.txt & set /p _autoSweepOnOffChar=<_autoSweepOnOffChar.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweep=%_stageSweep% 2>nul & set /a _autoSweepOnOffChar=%_autoSweepOnOffChar% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
-if %_stageSweep% lss 50 (echo 1 > _world.txt 2>nul)
+if %_stageSweep% leq 50 (echo 1 > _world.txt 2>nul)
 if %_stageSweep% leq 100 (if %_stageSweep% geq 51 (echo 2 > _world.txt 2>nul))
 if %_stageSweep% leq 150 (if %_stageSweep% geq 101 (echo 3 > _world.txt 2>nul))
 if %_stageSweep% leq 200 (if %_stageSweep% geq 151 (echo 4 > _world.txt 2>nul))
@@ -360,7 +366,9 @@ echo.==========
 echo.[4] Switch to the next character
 echo.[5] Turn on / off auto Sweep for [40;97m%_name%[40;96m
 echo.==========
-echo.[6, 7] Return
+echo.[6] ...
+echo.==========
+echo.[7] Return
 echo.[8] Turn on / off auto Sweep main
 echo.[9] Switch to settings [40;97mAuto Refill AP[40;96m
 choice /c 123456789 /n /m "Enter the number from the keyboard: "
@@ -369,7 +377,7 @@ if %errorlevel% equ 2 (mode con:cols=60 lines=25 & goto :pickSweep)
 if %errorlevel% equ 3 (mode con:cols=60 lines=25 & goto :howManyTurn)
 if %errorlevel% equ 4 (mode con:cols=60 lines=25 & set /a _charCount+=1 &goto :gotoSweep1)
 if %errorlevel% equ 5 (mode con:cols=60 lines=25 & goto :charSweepOnOff)
-if %errorlevel% equ 6 (mode con:cols=60 lines=25 & goto :gotoSweep1)
+if %errorlevel% equ 6 (mode con:cols=60 lines=25 & goto :displayVi)
 if %errorlevel% equ 7 (mode con:cols=60 lines=25 & goto :displayVi)
 if %errorlevel% equ 8 (mode con:cols=60 lines=25 & goto :autoSweepOnOffAll)
 if %errorlevel% equ 9 (mode con:cols=60 lines=25 & goto :gotoRefillAP)
@@ -496,7 +504,7 @@ rem Delete the draft file input and output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem\input.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem\output1.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem\output.json 2>nul
-echo.└──── Successful get equipped ID item(s)...
+echo.└──── Successful get equipped ID item(s) ...
 timeout 3
 goto :importTrangBi
 :importTrangBiWeapon
@@ -939,7 +947,11 @@ echo.
 echo ==========
 echo Enter Public Key of wallet %_vi:~0,7%*** via 9cscan ...
 rem --ssl-no-revoke fixes
-(curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_vi%/transactions?action=activate_account^&action=activate_account2)> %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json 2>nul
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_vi%/transactions?action=activate_account 2>nul|findstr /i signed> %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json 2>nul
+if %errorlevel% == 0 (goto :9cscanPublicKey2)
+:9cscanPublicKey1
+curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9cscan.com/accounts/%_vi%/transactions?action=activate_account2 2>nul|findstr /i signed> %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json 2>nul
+:9cscanPublicKey2
 rem Filter the results of data
 echo.└── Find Public Key of the wallet %_vi:~0,7%*** ...
 call :ReadJsonbat publicKey
@@ -1167,6 +1179,7 @@ exit /b
 del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json
 exit /b
 :autoRefillAP
+echo.└── Start Auto Refill AP character: %_name% ...
 rem Create data saving folders
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP"
 if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP)
@@ -1186,10 +1199,10 @@ echo Step 1: Get unsignedTransaction
 echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/refillAP --ssl-no-revoke --location> output.json 2>nul
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (echo.└── Error 0: Unknown error, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & timeout 5 & goto :displayVi)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul & set /p _kqua=<_kqua.txt
-if %_checkqua% == 0 (echo.└── %_kqua%, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & timeout 10 & goto :displayVi)
+if %_checkqua% == 0 (echo.└── %_kqua%, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & timeout 100 & goto :displayVi)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -1206,7 +1219,7 @@ goto :KTraSignature1
 :KTraSignature1
 set "_signature="
 set /p _signature=<_signature.txt
-if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & set /a _passwordOK=0 & rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\auto\password & timeout 10 & goto :displayVi)
+if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & set /a _passwordOK=0 & rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\auto\password & timeout 100 & goto :displayVi)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -1261,6 +1274,7 @@ if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & 
 if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── turn off Auto ... & set /a _canAutoOnOff=0 & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
 goto :duLieuViCu
 :autoSweep
+echo.└── Đang Auto Sweep nhân vật: %_name% ... &
 rem Create data saving folders
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep"
 if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep)
@@ -1272,7 +1286,7 @@ set /p _itemIDList=<_itemIDList.json
 echo off
 echo Step 0: Check previous Sweep transactions
 rem Check whether the previous transactions are successful or not
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep7^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep8^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do call :idCheckStatus %%a
 echo.└──── Complete step 0
@@ -1282,7 +1296,7 @@ echo Step 1: Get unsignedTransaction
 echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%","world": "%_world%","stageSweep": "%_stageSweep%","howManyAP": "%_howManyAP%","itemIDList": %_itemIDList%}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/autoSweep --ssl-no-revoke --location> output.json 2>nul
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (echo.└── Error 0: Unknown error, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & timeout 5 & goto :displayVi)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get the value exceeds 1024 characters
@@ -1291,7 +1305,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep1
 )
 :autoSweep1
-if %_checkqua% == 0 (echo.└── %_kqua%, tắt auto ... & set /a _canAutoOnOff=0 & color 4F & timeout 10 & goto :displayVi)
+if %_checkqua% == 0 (echo.└── %_kqua%, turn off auto ... & set /a _canAutoOnOff=0 & color 4F & timeout 100 & goto :displayVi)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -1313,7 +1327,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep2
 )
 :autoSweep2
-if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & set /a _passwordOK=0 & rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\auto\password & timeout 10 & goto :displayVi)
+if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, turn off Auto ... & set /a _canAutoOnOff=0 & color 4F & set /a _passwordOK=0 & rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\auto\password & timeout 100 & goto :displayVi)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction

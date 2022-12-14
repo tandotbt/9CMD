@@ -16,6 +16,8 @@ echo Nhập ví (B)
 echo.
 cd %_cd%\batch
 set /p _viB="Nhập ví B: "
+rem Xóa khoảng trắng
+set _viB=%_viB: =%
 echo %_viB% > %_cd%\user\_viB.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viB%\"){crystal}}goldBalance(address: \"%_viB%\" )}"} > input.json

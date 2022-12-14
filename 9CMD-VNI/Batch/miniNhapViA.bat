@@ -22,7 +22,9 @@ del _allKey.txt
 cd %_cd%\batch
 echo.
 set /p _viA="Nhập ví A: "
-echo %_viA% > %_cd%\user\_viA.txt
+rem Xóa khoảng trắng
+set _viA=%_viA: =%
+echo %_viA%> %_cd%\user\_viA.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
