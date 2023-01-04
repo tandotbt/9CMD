@@ -9,7 +9,7 @@ echo Đang lấy ID Key của (A)
 echo.
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
+type _allKey.txt
 findstr /L %_viA% _allKey.txt >_IDKeyCuaA.txt
 set "_IDKeyCuaA="
 set /p _IDKeyCuaA=<_IDKeyCuaA.txt
@@ -45,7 +45,7 @@ echo ==========
 echo Đang lấy Key ID của (A), chờ một chút...
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
+type _allKey.txt
 findstr /L %_viA% _allKey.txt >_IDKeyCuaA.txt
 set "_IDKeyCuaA="
 set /p _IDKeyCuaA=<_IDKeyCuaA.txt

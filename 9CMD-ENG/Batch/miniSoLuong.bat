@@ -62,6 +62,6 @@ if defined var (set /a _ktra=0) else (set /a _ktra=1)
 if "%_ktra%" == "1" (goto :KTraSoLuong3) else (echo Error 2: Amount not numbers, try again... && color 4F && timeout 3 && goto :SoLuong)
 rem Check is smaller than the balance or not
 :KTraSoLuong3
-if %_currency% == NCG (if %_soLuong% gtr %_ncgCuaA% (set /a _ktra=0))
-if %_currency% == CRYSTAL (if %_soLuong% gtr %_crystalCuaA% (set /a _ktra=0))
+if %_currency% == NCG (if %_soLuong% geq %_ncgCuaA% (set /a _ktra=0))
+if %_currency% == CRYSTAL (if %_soLuong% geq %_crystalCuaA% (set /a _ktra=0))
 if "%_ktra%" == "1" (timeout 1 && exit /b) else (echo Error 3: Amount exceeds the balance, try again... && color 4F && timeout 3 && goto :SoLuong)

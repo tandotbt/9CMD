@@ -62,6 +62,6 @@ if defined var (set /a _ktra=0) else (set /a _ktra=1)
 if "%_ktra%" == "1" (goto :KTraSoLuong3) else (echo Lỗi 2: Số lượng không phải dạng số, thử lại... && color 4F && timeout 3 && goto :SoLuong)
 rem Kiểm tra có nhỏ hơn số dư hay không
 :KTraSoLuong3
-if %_currency% == NCG (if %_soLuong% gtr %_ncgCuaA% (set /a _ktra=0))
-if %_currency% == CRYSTAL (if %_soLuong% gtr %_crystalCuaA% (set /a _ktra=0))
+if %_currency% == NCG (if %_soLuong% geq %_ncgCuaA% (set /a _ktra=0))
+if %_currency% == CRYSTAL (if %_soLuong% geq %_crystalCuaA% (set /a _ktra=0))
 if "%_ktra%" == "1" (timeout 1 && exit /b) else (echo Lỗi 3: Số lượng vượt quá số dư, thử lại... && color 4F && timeout 3 && goto :SoLuong)

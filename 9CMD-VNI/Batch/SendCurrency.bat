@@ -32,14 +32,18 @@ call :background
 rem Hiển thị ví đang có file UTC
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
-del _allKey.txt
+type _allKey.txt
 cd %_cd%
 echo.
 rem Nhập ví (A)
 echo.[1]Sử dụng node      : %_node%
+echo.Gõ 'open' để mở bằng Notepad
 set /p _viA="Ví người gửi (A): "
-echo %_viA% > %_cd%\user\_viA.txt
+rem Xóa khoảng trắng
+set _viA=%_viA: =%
+if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :NhapViA)
+echo %_viA%> %_cd%\user\_viA.txt
+del /q %_cd%\planet\_allKey.txt
 rem Kiểm tra số dư ví (A)
 call %_cd%\batch\KTraSoDuCuaA.bat
 rem Ghi giá trị của A
@@ -335,6 +339,6 @@ if defined var (set /a _ktra=0) else (set /a _ktra=1)
 if "%_ktra%" == "1" (goto :KTraSoLuong3) else (echo Lỗi 2: Số lượng không phải dạng số, thử lại... && color 4F && timeout 3 && goto :ChonLoaiTienTe)
 rem Kiểm tra có nhỏ hơn số dư hay không
 :KTraSoLuong3
-if %_currency% == NCG (if %_soLuong% gtr %_ncgCuaA% (set /a _ktra=0))
-if %_currency% == CRYSTAL (if %_soLuong% gtr %_crystalCuaA% (set /a _ktra=0))
+if %_currency% == NCG (if %_soLuong% geq %_ncgCuaA% (set /a _ktra=0))
+if %_currency% == CRYSTAL (if %_soLuong% geq %_crystalCuaA% (set /a _ktra=0))
 if "%_ktra%" == "1" (goto :SoLuongOK) else (echo Lỗi 3: Số lượng vượt quá số dư, thử lại... && color 4F && timeout 3 && goto :ChonLoaiTienTe)

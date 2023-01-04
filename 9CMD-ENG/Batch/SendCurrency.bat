@@ -32,14 +32,18 @@ call :background
 rem Showing wallet in UTC folder
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
-del _allKey.txt
+type _allKey.txt
 cd %_cd%
 echo.
 rem Enter wallet (A)
 echo.[1]Use node          : %_node%
+echo.Type 'open' to open with Notepad
 set /p _viA="Wallet sender (A): "
-echo %_viA% > %_cd%\user\_viA.txt
+rem Delete spaces
+set _viA=%_viA: =%
+if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :NhapViA)
+echo %_viA%> %_cd%\user\_viA.txt
+del /q %_cd%\planet\_allKey.txt
 rem Check balance wallet (A)
 call %_cd%\batch\KTraSoDuCuaA.bat
 rem Save value A
@@ -333,6 +337,6 @@ if defined var (set /a _ktra=0) else (set /a _ktra=1)
 if "%_ktra%" == "1" (goto :KTraSoLuong3) else (echo Error 2: Amount not numbers, try again... && color 4F && timeout 3 && goto :ChonLoaiTienTe)
 rem Check is smaller than the balance or not
 :KTraSoLuong3
-if %_currency% == NCG (if %_soLuong% gtr %_ncgCuaA% (set /a _ktra=0))
-if %_currency% == CRYSTAL (if %_soLuong% gtr %_crystalCuaA% (set /a _ktra=0))
+if %_currency% == NCG (if %_soLuong% geq %_ncgCuaA% (set /a _ktra=0))
+if %_currency% == CRYSTAL (if %_soLuong% geq %_crystalCuaA% (set /a _ktra=0))
 if "%_ktra%" == "1" (goto :SoLuongOK) else (echo Error 3: Amount exceeds the balance, try again... && color 4F && timeout 3 && goto :ChonLoaiTienTe)

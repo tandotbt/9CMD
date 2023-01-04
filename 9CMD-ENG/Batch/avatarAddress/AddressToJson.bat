@@ -25,6 +25,7 @@ timeout 5
 goto :eof
 :processline
 set _vi=%* & set _vi1=%_vi:~0,42%
+set /a _ncg=0 & set /a _crystal=0
 cd %_cd%\batch
 rem Check the balance
 echo {"query":"query{stateQuery{agent(address:\"%_vi:~0,42%\"){crystal}}goldBalance(address: \"%_vi:~0,42%\" )}"} > input.json
@@ -38,6 +39,8 @@ cd %_cd%\batch
 del *.json
 set /p _ncg=<%_cd%/user/avatarAddress/_ncg.txt
 set /p _crystal=<%_cd%/user/avatarAddress/_crystal.txt
+del /q %_cd%\user\avatarAddress\_ncg.txt
+del /q %_cd%\user\avatarAddress\_crystal.txt
 if %_i%==0 (echo. & set /a _i+=1) else (echo Received wallet [%_i%] & echo ,{"vi":"%_vi:~0,42%","ncg":"%_ncg%","crystal":"%_crystal%"}>>%_cd%\user\avatarAddress\oldData.json & set /a _i+=1)
 goto :eof
 :eof

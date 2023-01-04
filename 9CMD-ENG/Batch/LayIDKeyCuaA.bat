@@ -9,7 +9,7 @@ echo Taking the Key id of (A)
 echo.
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
+type _allKey.txt
 findstr /L %_viA% _allKey.txt >_IDKeyCuaA.txt
 set "_IDKeyCuaA="
 set /p _IDKeyCuaA=<_IDKeyCuaA.txt
@@ -45,7 +45,7 @@ echo ==========
 echo Take the Key ID of (A), wait a bit...
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
+type _allKey.txt
 findstr /L %_viA% _allKey.txt >_IDKeyCuaA.txt
 set "_IDKeyCuaA="
 set /p _IDKeyCuaA=<_IDKeyCuaA.txt

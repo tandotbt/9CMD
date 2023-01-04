@@ -15,8 +15,11 @@ Sử dụng:
 Tính năng:
 - Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
 - Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
+- Thông báo khi có thể refill AP
 - [Donater / Premium code] Auto refill AP khi nhân vật còn 0 AP
 - [Donater / Premium code] Auto Sweep cho mỗi nhân vật
+- [Donater / Premium code] Auto Repeat cho mỗi nhân vật
+- [Donater / Premium code] Module Climbing Chilling
 
 ==========
 
@@ -25,16 +28,19 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.7.3:
-- Sửa lỗi khoẳng trắng với mini nhập ví
-- Sửa lỗi khi ví có ncg và crystal nhỏ hơn 10
-- Sửa lỗi khi stage đã mở nhỏ hơn 10
-- Sửa nhập public key bằng 9cscan
-- Sửa lỗi khi Stage bằng 50
-- Thêm nhận biến _node
-- Thêm nhiều tùy chọn rác, tránh nhấn nhầm xóa hết dữ liệu
-- Thêm tính tổng Crystal và NCG
-- Thay đổi bước 0 cho phù hợp
+Thay đổi v0.8:
+- Tối ưu code
+- Sửa lỗi lặp giá trị tiền tệ của ví trước cho ví rỗng
+- Thêm thông báo online cho menu
+- Thêm tính năng Repeat, module của Repeat (auto unlock world, auto use AP potion, ...)
+- Thêm xem danh sách bằng Notepad
+- Thêm thông báo khi có nhân vật có thể refill AP
+- Thêm tùy chọn cài stage 0, turn 0 để lấy tối đa stage / turn
+- Thay đổi tự động refill AP khi AP < AP stake
+- Thay đổi không tắt auto khi gặp lỗi
+- Thay đổi bộ lọc item, file html
+- Thay đổi nhỏ cho kiểm tra số lượng tiền tệ
+- Nâng cấp planet lên 0.45.3
 
 ==========
 
@@ -42,7 +48,7 @@ Thay đổi v0.7.3:
 
 Công cụ có sử dụng JQ bản 64bit để đọc file Json tại https://stedolan.github.io/jq/
 
-Planet 0.42.2 win x64 tại https://github.com/planetarium/libplanet/releases
+Planet win x64 tại https://github.com/planetarium/libplanet/releases
 
 Vài đoạn mã lấy trên mạng như gõ mật khẩu ẩn, lấy dữ liệu từ kết quả của mã trước,... đã được xem qua và có vẻ an toàn 👍
 
@@ -76,6 +82,8 @@ Feature:
 - Tracked Avatar - Check NCG and Crystal quickly
 - [Donater / Premium code] Auto refill AP when the character has 0 AP
 - [Donater / Premium code] Auto Sweep for each character
+- [Donater / Premium code] Auto Repeat for each character
+- [Donater / Premium code] Module Climbing Chilling
 
 ==========
 
@@ -84,16 +92,19 @@ Request:
 
 ==========
 
-Change v0.7.3:
-- Fix the space error with the mini import wallet
-- Fix errors when the wallet has NCG and Crystal less than 10
-- Fix errors when the stage has opened less than 10
-- Fix import public key with 9cscan
-- Fix errors when the stage equal 50
-- Add variables _node
-- Add more garbage options, avoid pressing delete all the data
-- Add total Crystal and NCG
-- Change step 0
+Change v0.8:
+- Code optimization
+- Fix repeat the currency value of the first wallet for empty wallet
+- Add online announcement for menu
+- Add feature Repeat, module of feature Repeat (auto unlock world, auto use AP potion, ...)
+- Add view list with Notepad
+- Add notice when a character can refill AP
+- Add options stage 0, turn 0 to get the max Stage / Turn can
+- Change automatically refill AP when AP < AP Stake
+- Change not turn off Auto when having errors
+- Change item filter, html file
+- Change check the amount of currency
+- Upgrade planet up 0.45.3
 
 ==========
 
@@ -101,7 +112,7 @@ Change v0.7.3:
 
 The tool uses JQ version 64bit to read JSON file at https://stedolan.github.io/jq/
 
-Planet 0.42.2 win x64 at https://github.com/planetarium/libplanet/releases
+Planet win x64 at https://github.com/planetarium/libplanet/releases
 
 A few codes taken online such as hidden password, taking data from the results of the previous code, ... have been seen and seemed to be safe 👍
 

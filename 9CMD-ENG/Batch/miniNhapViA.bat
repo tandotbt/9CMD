@@ -9,6 +9,7 @@ echo ==========
 echo Select Node
 echo.
 call %_cd%\batch\miniChonNode.bat
+:batdau
 call :Background
 rem Enter wallet (A)
 echo ==========
@@ -17,13 +18,14 @@ echo.
 rem Showing wallet in UTC folder
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
-del _allKey.txt
+type _allKey.txt
 cd %_cd%\batch
 echo.
+echo.Type 'open' to open with Notepad
 set /p _viA="Enter wallet A: "
 rem Delete spaces
 set _viA=%_viA: =%
+if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :batdau)
 echo %_viA%> %_cd%\user\_viA.txt
 rem Check balance
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
@@ -129,12 +131,16 @@ echo.
 rem Showing wallet in UTC folder
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
-del _allKey.txt
+type _allKey.txt
 cd %_cd%\batch
 echo.
+echo.Type 'open' to open with Notepad
 set /p _viA="Enter wallet A: "
+rem Delete spaces
+set _viA=%_viA: =%
+if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :NhapViA)
 echo %_viA% > %_cd%\user\_viA.txt
+del /q %_cd%\planet\_allKey.txt
 rem Check balance
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql

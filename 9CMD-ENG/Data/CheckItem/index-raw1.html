@@ -9,7 +9,116 @@
 "https://code.jquery.com/jquery-3.5.1.js">
 	</script>
 	<script src="..\..\..\..\..\..\Data\avatarAddress\lazysizes.min.js" async=""></script>
-
+<script>
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("table");
+  switching = true;
+  //Set the sorting direction to ascending:
+  dir = "asc"; 
+  /*Make a loop that will continue until
+  no switching has been done:*/
+  while (switching) {
+    //start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /*Loop through all table rows (except the
+    first, which contains table headers):*/
+    for (i = 1; i < (rows.length - 1); i++) {
+      //start by saying there should be no switching:
+      shouldSwitch = false;
+      /*Get the two elements you want to compare,
+      one from current row and one from the next:*/
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /*check if the two rows should switch place,
+      based on the direction, asc or desc:*/
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch= true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /*If a switch has been marked, make the switch
+      and mark that a switch has been done:*/
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      //Each time a switch is done, increase this count by 1:
+      switchcount ++;      
+    } else {
+      /*If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again.*/
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+function sortTableNumber(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("table");
+  switching = true;
+  //Set the sorting direction to ascending:
+  dir = "asc"; 
+  /*Make a loop that will continue until
+  no switching has been done:*/
+  while (switching) {
+    //start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /*Loop through all table rows (except the
+    first, which contains table headers):*/
+    for (i = 1; i < (rows.length - 1); i++) {
+      //start by saying there should be no switching:
+      shouldSwitch = false;
+      /*Get the two elements you want to compare,
+      one from current row and one from the next:*/
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /*check if the two rows should switch place,
+      based on the direction, asc or desc:*/
+      if (dir == "asc") {
+        if (parseFloat(x.innerHTML.toLowerCase()) > parseFloat(y.innerHTML.toLowerCase())) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch= true;
+          break;
+        }
+      } else if (dir == "desc") {
+        if (parseFloat(x.innerHTML.toLowerCase()) < parseFloat(y.innerHTML.toLowerCase())) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch = true;
+          break;
+        }
+      }
+    }
+    if (shouldSwitch) {
+      /*If a switch has been marked, make the switch
+      and mark that a switch has been done:*/
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      //Each time a switch is done, increase this count by 1:
+      switchcount ++;      
+    } else {
+      /*If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again.*/
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }
+    }
+  }
+}
+</script>
 	<!-- CSS FOR STYLING THE PAGE -->
 	<style>
 		table {
@@ -36,6 +145,15 @@
 		}		
 		td.equip {
 			background-color: #4caf50;
+			border: 1px solid black;
+		}
+		td.pick {
+			background-color: #2196f3;
+			border: 1px solid black;
+		}
+		td.pickAndEquip {
+			background-color: #2196f3;
+			background-image: linear-gradient(to right, #2196f3, #4caf50 );
 			border: 1px solid black;
 		}
 		td {
@@ -102,22 +220,22 @@
 		<h1>Tutorial here: <a href="https://9cmd.tanvpn.tk/" target="_blank"><img src="..\..\..\..\..\..\Data\avatarAddress\9cmd.png" alt="9cmd" style="width: 120;"></a></p></h1>
 		<h2>Warning:</h2>
 		<h3>Here are ALL the character items that own: item can be equipped, the item is crafting (or upgrade +) and the item is selling (or expiry) in the shop</h3>
-		<h3>You can only use items that can be equipped, select wrong, the Sweep transaction will not successful</h3>
+		<h3>You can only use items that can be equipped, select wrong, the transaction will not successful</h3>
 		<h3>Using the items being equipped is always successful!</h3>
 <div style="overflow-wrap: anywhere;">
 		<!-- TABLE CONSTRUCTION-->
 		<table id='table'>
 			<!-- HEADING FORMATION -->
 			<tr>
-				<th>STT</th>
-				<th>Image</th>
-				<th>Item Id</th>
-				<th>Index</th>
-				<th>Hammer</th>				
-				<th>Skills</th>
+				<th onclick="sortTableNumber(0)">STT</th>
+				<th onclick="sortTable(1)">Image</th>
+				<th onclick="sortTable(2)">Item Id</th>
+				<th onclick="sortTable(3)">Index</th>
+				<th onclick="sortTableNumber(4)">Hammer</th>				
+				<th onclick="sortTable(5)">Skills</th>
+				<th onclick="sortTableNumber(6)">CP</th>
 			</tr>
 </div>
 			<script>
 				$(document).ready(function () {
 
-					// FETCHING DATA FROM JSON FILE

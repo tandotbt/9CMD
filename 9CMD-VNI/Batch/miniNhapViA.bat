@@ -9,6 +9,7 @@ echo ==========
 echo Chọn node hoạt động
 echo.
 call %_cd%\batch\miniChonNode.bat
+:batdau
 call :Background
 rem Nhập
 echo ==========
@@ -17,13 +18,14 @@ echo.
 rem Hiển thị ví đang có file UTC
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
-del _allKey.txt
+type _allKey.txt
 cd %_cd%\batch
 echo.
+echo.Gõ 'open' để mở bằng Notepad
 set /p _viA="Nhập ví A: "
 rem Xóa khoảng trắng
 set _viA=%_viA: =%
+if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :batdau)
 echo %_viA%> %_cd%\user\_viA.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
@@ -129,12 +131,16 @@ echo.
 rem Hiển thị ví đang có file UTC
 cd %_cd%\planet
 planet key --path %_cd%\user\utc> _allKey.txt
-more _allKey.txt
-del _allKey.txt
+type _allKey.txt
 cd %_cd%\batch
 echo.
+echo.Gõ 'open' để mở bằng Notepad
 set /p _viA="Nhập ví A: "
+rem Xóa khoảng trắng
+set _viA=%_viA: =%
+if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :NhapViA)
 echo %_viA% > %_cd%\user\_viA.txt
+del /q %_cd%\planet\_allKey.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql

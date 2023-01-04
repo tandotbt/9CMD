@@ -3,15 +3,18 @@ set /p _cd=<_cd.txt
 title 9CMD - by tanbt
 :Menu
 call :background
-echo.           TOoL cHo CHín cÊ
-echo.
+curl http://api.tanvpn.tk/vni/news --ssl-no-revoke --location > %_cd%\user\_temp.json 2>nul
+%_cd%\batch\jq.exe -r ".news" %_cd%\user\_temp.json > %_cd%\user\_temp.txt 2>nul
+set /p _temp=<%_cd%\user\_temp.txt
+%_temp%
+del /q %_cd%\user\_temp.json %_cd%\user\_temp.txt
 echo [1] Bạn đã nhập file UTC chưa?
 echo [2] Tính năng
 echo [3] Giới thiệu
 echo.[4] Hướng dẫn sử dụng
 echo.
 echo.       Một sản phẩm make color :v
-echo.      === Phiên bản: [0.7.3] ===
+echo.        === Phiên bản: [0.8] ===
 choice /c 1234 /n /m "Nhập từ bàn phím: "
 if %errorlevel% == 1 (call %_cd%\Batch\enterUTC.bat)
 if %errorlevel% == 2 (goto :tinhNang)
@@ -39,3 +42,4 @@ echo [2] Theo dõi Avatar
 choice /c 12 /n /m "Nhập từ bàn phím: "
 if %errorlevel% == 1 (call %_cd%\Batch\SendCurrency.bat)
 if %errorlevel% == 2 (call %_cd%\Batch\avatarAddress\TrackedAvatar.bat)
+goto :Menu

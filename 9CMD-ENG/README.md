@@ -15,6 +15,8 @@ Feature:
 - Tracked Avatar - Check NCG and Crystal quickly
 - [Donater / Premium code] Auto refill AP when the character has 0 AP
 - [Donater / Premium code] Auto Sweep for each character
+- [Donater / Premium code] Auto Repeat for each character
+- [Donater / Premium code] Module Climbing Chilling
 
 ==========
 
@@ -23,16 +25,19 @@ Request:
 
 ==========
 
-Change v0.7.3:
-- Fix the space error with the mini import wallet
-- Fix errors when the wallet has NCG and Crystal less than 10
-- Fix errors when the stage has opened less than 10
-- Fix import public key with 9cscan
-- Fix errors when the stage equal 50
-- Add variables _node
-- Add more garbage options, avoid pressing delete all the data
-- Add total Crystal and NCG
-- Change step 0
+Change v0.8:
+- Code optimization
+- Fix repeat the currency value of the first wallet for empty wallet
+- Add online announcement for menu
+- Add feature Repeat, module of feature Repeat (auto unlock world, auto use AP potion, ...)
+- Add view list with Notepad
+- Add notice when a character can refill AP
+- Add options stage 0, turn 0 to get the max Stage / Turn can
+- Change automatically refill AP when AP < AP Stake
+- Change not turn off Auto when having errors
+- Change item filter, html file
+- Change check the amount of currency
+- Upgrade planet up 0.45.3
 
 ==========
 

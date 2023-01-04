@@ -5,8 +5,30 @@
 						// ITERATING THROUGH OBJECTS
 						$.each(data, function (key, value) {
 if (value.equipped > 0) {
-							//CONSTRUCTION OF ROWS HAVING
-							// DATA FROM JSON OBJECT
+	if (value.picked > 0){
+							student += '<tr>';
+							student += "<td class='pick'>" + student1 + '</td>';
+							student += "<td class='pick'>" +
+								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.image +"'><sub>" + value.level +'</sub></td>';
+
+							student += "<td class='pickAndEquip'><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
+							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
+							+"</td>";
+
+							student += "<td class='equip' style='white-space: pre-line'>" + value.stat +
+								value.index + '</td>';
+
+							student += "<td class='equip'>" +
+								value.grade + '</td>';
+								
+							student += "<td class='equip' style='white-space: pre-line'>" +
+								value.skills + '</td>';	
+						
+							student += "<td class='equip'>" +
+								value.CP + '</td>';
+							student += '</tr>';
+							student1 +=1;
+						} else {
 							student += '<tr>';
 							student += "<td class='equip'>" + student1 + '</td>';
 							student += "<td class='equip'>" +
@@ -25,12 +47,36 @@ if (value.equipped > 0) {
 							student += "<td class='equip' style='white-space: pre-line'>" +
 								value.skills + '</td>';	
 						
+							student += "<td class='equip'>" +
+								value.CP + '</td>';
 							student += '</tr>';
 							student1 +=1;
+								}
 							
 } else {
-							//CONSTRUCTION OF ROWS HAVING
-							// DATA FROM JSON OBJECT
+	if (value.picked > 0){
+							student += '<tr>';
+							student += "<td class='pick'>" + student1 + '</td>';
+							student += "<td class='pick'>" +
+								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.image +"'><sub>" + value.level +'</sub></td>';
+
+							student += "<td class='pick'><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
+							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
+							+"</td>";
+
+							student += "<td class='pick' style='white-space: pre-line'>" + value.stat +
+								value.index + '</td>';
+
+							student += "<td class='pick'>" +
+								value.grade + '</td>';
+								
+							student += "<td  class='pick' style='white-space: pre-line'>" +
+								value.skills + '</td>';							
+							student += "<td class='pick'>" +
+								value.CP + '</td>';
+							student += '</tr>';
+							student1 +=1;
+						} else {
 							student += '<tr>';
 							student += "<td>" + student1 + '</td>';
 							student += "<td>" +
@@ -48,8 +94,11 @@ if (value.equipped > 0) {
 								
 							student += '<td style="white-space: pre-line">' +
 								value.skills + '</td>';							
+							student += "<td>" +
+								value.CP + '</td>';
 							student += '</tr>';
 							student1 +=1;
+								}
 }
 });
 						
