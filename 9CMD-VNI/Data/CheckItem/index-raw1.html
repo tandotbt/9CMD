@@ -121,6 +121,16 @@ function sortTableNumber(n) {
 </script>
 	<!-- CSS FOR STYLING THE PAGE -->
 	<style>
+	tr.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0px;
+  z-index: 999;
+  background-image: url('cover.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;  
+  background-size: cover;
+	}
 		table {
 			margin: 0 auto;
 			font-size: large;
@@ -226,7 +236,7 @@ function sortTableNumber(n) {
 		<!-- TABLE CONSTRUCTION-->
 		<table id='table'>
 			<!-- HEADING FORMATION -->
-			<tr>
+			<tr class="sticky">
 				<th onclick="sortTableNumber(0)">STT</th>
 				<th onclick="sortTable(1)">Image</th>
 				<th onclick="sortTable(2)">Item Id</th>
@@ -234,6 +244,8 @@ function sortTableNumber(n) {
 				<th onclick="sortTableNumber(4)">Hammer</th>				
 				<th onclick="sortTable(5)">Skills</th>
 				<th onclick="sortTableNumber(6)">CP</th>
+				<th onclick="sortTableNumber(7)">Stage Unlock</th>
+				<th onclick="sortTableNumber(8)">Level Req</th>
 			</tr>
 </div>
 			<script>

@@ -5,6 +5,7 @@ rem Cài tiếng Việt Nam
 chcp 65001
 cls
 rem Tạo _cd.txt
+title 9CMD - by tanbt
 echo ==========
 echo Cài file cd
 echo.Lưu ý: Tên thư mục chứa 9CMD

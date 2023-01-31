@@ -1,0 +1,527 @@
+[
+  {
+    "item_sub_type": "Weapon",
+    "grade": 1,
+    "level": 1,
+    "success_required_block_index": 25,
+    "great_success_required_block_index": 31
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 1,
+    "level": 2,
+    "success_required_block_index": 62,
+    "great_success_required_block_index": 77
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 1,
+    "level": 3,
+    "success_required_block_index": 125,
+    "great_success_required_block_index": 156
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 2,
+    "level": 1,
+    "success_required_block_index": 37,
+    "great_success_required_block_index": 46
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 2,
+    "level": 2,
+    "success_required_block_index": 93,
+    "great_success_required_block_index": 116
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 2,
+    "level": 3,
+    "success_required_block_index": 187,
+    "great_success_required_block_index": 233
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 3,
+    "level": 1,
+    "success_required_block_index": 75,
+    "great_success_required_block_index": 93
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 3,
+    "level": 2,
+    "success_required_block_index": 187,
+    "great_success_required_block_index": 233
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 3,
+    "level": 3,
+    "success_required_block_index": 375,
+    "great_success_required_block_index": 468
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 4,
+    "level": 1,
+    "success_required_block_index": 162,
+    "great_success_required_block_index": 202
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 4,
+    "level": 2,
+    "success_required_block_index": 406,
+    "great_success_required_block_index": 507
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 4,
+    "level": 3,
+    "success_required_block_index": 812,
+    "great_success_required_block_index": 1015
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 5,
+    "level": 1,
+    "success_required_block_index": 300,
+    "great_success_required_block_index": 375
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 5,
+    "level": 2,
+    "success_required_block_index": 750,
+    "great_success_required_block_index": 937
+  },
+  {
+    "item_sub_type": "Weapon",
+    "grade": 5,
+    "level": 3,
+    "success_required_block_index": 1500,
+    "great_success_required_block_index": 1875
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 1,
+    "level": 1,
+    "success_required_block_index": 20,
+    "great_success_required_block_index": 25
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 1,
+    "level": 2,
+    "success_required_block_index": 50,
+    "great_success_required_block_index": 62
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 1,
+    "level": 3,
+    "success_required_block_index": 100,
+    "great_success_required_block_index": 125
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 2,
+    "level": 1,
+    "success_required_block_index": 30,
+    "great_success_required_block_index": 37
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 2,
+    "level": 2,
+    "success_required_block_index": 75,
+    "great_success_required_block_index": 93
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 2,
+    "level": 3,
+    "success_required_block_index": 150,
+    "great_success_required_block_index": 187
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 3,
+    "level": 1,
+    "success_required_block_index": 60,
+    "great_success_required_block_index": 75
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 3,
+    "level": 2,
+    "success_required_block_index": 150,
+    "great_success_required_block_index": 187
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 3,
+    "level": 3,
+    "success_required_block_index": 300,
+    "great_success_required_block_index": 375
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 4,
+    "level": 1,
+    "success_required_block_index": 130,
+    "great_success_required_block_index": 162
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 4,
+    "level": 2,
+    "success_required_block_index": 325,
+    "great_success_required_block_index": 406
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 4,
+    "level": 3,
+    "success_required_block_index": 650,
+    "great_success_required_block_index": 812
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 5,
+    "level": 1,
+    "success_required_block_index": 240,
+    "great_success_required_block_index": 300
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 5,
+    "level": 2,
+    "success_required_block_index": 600,
+    "great_success_required_block_index": 750
+  },
+  {
+    "item_sub_type": "Armor",
+    "grade": 5,
+    "level": 3,
+    "success_required_block_index": 1200,
+    "great_success_required_block_index": 1500
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 1,
+    "level": 1,
+    "success_required_block_index": 20,
+    "great_success_required_block_index": 25
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 1,
+    "level": 2,
+    "success_required_block_index": 50,
+    "great_success_required_block_index": 62
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 1,
+    "level": 3,
+    "success_required_block_index": 100,
+    "great_success_required_block_index": 125
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 2,
+    "level": 1,
+    "success_required_block_index": 30,
+    "great_success_required_block_index": 37
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 2,
+    "level": 2,
+    "success_required_block_index": 75,
+    "great_success_required_block_index": 93
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 2,
+    "level": 3,
+    "success_required_block_index": 150,
+    "great_success_required_block_index": 187
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 3,
+    "level": 1,
+    "success_required_block_index": 60,
+    "great_success_required_block_index": 75
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 3,
+    "level": 2,
+    "success_required_block_index": 150,
+    "great_success_required_block_index": 187
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 3,
+    "level": 3,
+    "success_required_block_index": 300,
+    "great_success_required_block_index": 375
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 4,
+    "level": 1,
+    "success_required_block_index": 130,
+    "great_success_required_block_index": 162
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 4,
+    "level": 2,
+    "success_required_block_index": 325,
+    "great_success_required_block_index": 406
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 4,
+    "level": 3,
+    "success_required_block_index": 650,
+    "great_success_required_block_index": 812
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 5,
+    "level": 1,
+    "success_required_block_index": 240,
+    "great_success_required_block_index": 300
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 5,
+    "level": 2,
+    "success_required_block_index": 600,
+    "great_success_required_block_index": 750
+  },
+  {
+    "item_sub_type": "Belt",
+    "grade": 5,
+    "level": 3,
+    "success_required_block_index": 1200,
+    "great_success_required_block_index": 1500
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 1,
+    "level": 1,
+    "success_required_block_index": 25,
+    "great_success_required_block_index": 31
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 1,
+    "level": 2,
+    "success_required_block_index": 62,
+    "great_success_required_block_index": 77
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 1,
+    "level": 3,
+    "success_required_block_index": 125,
+    "great_success_required_block_index": 156
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 2,
+    "level": 1,
+    "success_required_block_index": 37,
+    "great_success_required_block_index": 46
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 2,
+    "level": 2,
+    "success_required_block_index": 93,
+    "great_success_required_block_index": 116
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 2,
+    "level": 3,
+    "success_required_block_index": 187,
+    "great_success_required_block_index": 233
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 3,
+    "level": 1,
+    "success_required_block_index": 75,
+    "great_success_required_block_index": 93
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 3,
+    "level": 2,
+    "success_required_block_index": 187,
+    "great_success_required_block_index": 233
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 3,
+    "level": 3,
+    "success_required_block_index": 375,
+    "great_success_required_block_index": 468
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 4,
+    "level": 1,
+    "success_required_block_index": 162,
+    "great_success_required_block_index": 202
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 4,
+    "level": 2,
+    "success_required_block_index": 406,
+    "great_success_required_block_index": 507
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 4,
+    "level": 3,
+    "success_required_block_index": 812,
+    "great_success_required_block_index": 1015
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 5,
+    "level": 1,
+    "success_required_block_index": 300,
+    "great_success_required_block_index": 375
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 5,
+    "level": 2,
+    "success_required_block_index": 750,
+    "great_success_required_block_index": 937
+  },
+  {
+    "item_sub_type": "Necklace",
+    "grade": 5,
+    "level": 3,
+    "success_required_block_index": 1500,
+    "great_success_required_block_index": 1875
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 1,
+    "level": 1,
+    "success_required_block_index": 30,
+    "great_success_required_block_index": 37
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 1,
+    "level": 2,
+    "success_required_block_index": 75,
+    "great_success_required_block_index": 93
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 1,
+    "level": 3,
+    "success_required_block_index": 150,
+    "great_success_required_block_index": 187
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 2,
+    "level": 1,
+    "success_required_block_index": 45,
+    "great_success_required_block_index": 56
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 2,
+    "level": 2,
+    "success_required_block_index": 112,
+    "great_success_required_block_index": 140
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 2,
+    "level": 3,
+    "success_required_block_index": 225,
+    "great_success_required_block_index": 281
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 3,
+    "level": 1,
+    "success_required_block_index": 90,
+    "great_success_required_block_index": 112
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 3,
+    "level": 2,
+    "success_required_block_index": 225,
+    "great_success_required_block_index": 281
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 3,
+    "level": 3,
+    "success_required_block_index": 450,
+    "great_success_required_block_index": 562
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 4,
+    "level": 1,
+    "success_required_block_index": 195,
+    "great_success_required_block_index": 243
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 4,
+    "level": 2,
+    "success_required_block_index": 487,
+    "great_success_required_block_index": 608
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 4,
+    "level": 3,
+    "success_required_block_index": 975,
+    "great_success_required_block_index": 1218
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 5,
+    "level": 1,
+    "success_required_block_index": 360,
+    "great_success_required_block_index": 450
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 5,
+    "level": 2,
+    "success_required_block_index": 900,
+    "great_success_required_block_index": 1125
+  },
+  {
+    "item_sub_type": "Ring",
+    "grade": 5,
+    "level": 3,
+    "success_required_block_index": 1800,
+    "great_success_required_block_index": 2250
+  }
+]

@@ -121,6 +121,16 @@ function sortTableNumber(n) {
 </script>
 	<!-- CSS FOR STYLING THE PAGE -->
 	<style>
+	tr.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0px;
+  z-index: 999;
+  background-image: url('cover.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;  
+  background-size: cover;
+	}
 		table {
 			margin: 0 auto;
 			font-size: large;
@@ -218,15 +228,15 @@ function sortTableNumber(n) {
 <body>
 	<section>
 		<h1>Tutorial here: <a href="https://9cmd.tanvpn.tk/" target="_blank"><img src="..\..\..\..\..\..\Data\avatarAddress\9cmd.png" alt="9cmd" style="width: 120;"></a></p></h1>
-		<h2>Warning:</h2>
-		<h3>Here are ALL the character items that own: item can be equipped, the item is crafting (or upgrade +) and the item is selling (or expiry) in the shop</h3>
-		<h3>You can only use items that can be equipped, select wrong, the transaction will not successful</h3>
-		<h3>Using the items being equipped is always successful!</h3>
+		<h2>Lưu ý:</h2>
+		<h3>Dưới đây là TẤT CẢ item nhân vật sở hữu gồm: item có thể trang bị, item đang đúc (hoặc up +) và item đang bán (hoặc hết hạn) trong shop</h3>
+		<h3>Bạn chỉ có thể sử dụng item có thể trang bị, chọn nhầm thì lệnh sẽ không thành công</h3>
+		<h3>Sử dụng những item đang được mặc thì luôn thành công!</h3>
 <div style="overflow-wrap: anywhere;">
 		<!-- TABLE CONSTRUCTION-->
 		<table id='table'>
 			<!-- HEADING FORMATION -->
-			<tr>
+			<tr class="sticky">
 				<th onclick="sortTableNumber(0)">STT</th>
 				<th onclick="sortTable(1)">Image</th>
 				<th onclick="sortTable(2)">Item Id</th>
@@ -234,8 +244,9 @@ function sortTableNumber(n) {
 				<th onclick="sortTableNumber(4)">Hammer</th>				
 				<th onclick="sortTable(5)">Skills</th>
 				<th onclick="sortTableNumber(6)">CP</th>
+				<th onclick="sortTableNumber(7)">Stage Unlock</th>
+				<th onclick="sortTableNumber(8)">Level Req</th>
 			</tr>
 </div>
 			<script>
 				$(document).ready(function () {
-

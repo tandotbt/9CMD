@@ -23,6 +23,8 @@ rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viB%\"){crystal}}goldBalance(address: \"%_viB%\" )}"} > input.json
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
+findstr /i errors output.json>nul
+if %errorlevel% == 0 (echo Lỗi 1: Ví A chưa đúng cú pháp 'phân biệt cả chữ hoa chữ thường', thử lại... && color 4F && timeout 10 && goto :NhapViB)
 rem Lọc kết quả lấy dữ liệu
 jq "..|.crystal?|select(.)|tonumber" output.json > %_cd%\data\_crystalB.txt
 jq "..|.goldBalance?|select(.)|tonumber" output.json > %_cd%\data\_ncgB.txt

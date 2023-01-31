@@ -1,0 +1,52 @@
+
+							function (data) {
+						var student = '';
+						var student1 = 1;
+						// ITERATING THROUGH OBJECTS
+						$.each(data, function (key, value) {
+	if (value.slot > 0){
+							student += '<tr>';
+							student += "<td class='pick'>" + student1 + '</td>';
+							student += "<td class='pick'>" +
+								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.equipment +"'><sub>" + value.grade +'</sub></td>';
+
+							student += "<td class='pick'>"+ value.name +"<br><input type='text' value='" + value.equipment_id + "' id='Input" + student1 +"'>"
+							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
+							+"</td>";
+							student += "<td class='pick'>" + value.unlock_stage + '</td>';
+							student += "<td class='pick'>" + value.level_req + '</td>';
+							student += "<td class='pick'><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_1 +"'><sub>" + value.mat_1_count +"</sub><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_2 +"'><sub>" + value.mat_2_count +"</sub><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_3 +"'><sub>" + value.mat_3_count +"</sub><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_4 +"'><sub>" + value.mat_4_count +"</sub></td>";
+							student += "<td class='pick'>" + value.slot + '</td>';
+							student += '</tr>';
+							student1 +=1;
+						} else {
+							student += '<tr>';
+							student += "<td>" + student1 + '</td>';
+							student += "<td>" +
+								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.equipment +"'><sub>" + value.grade +'</sub></td>';
+
+							student += "<td>"+ value.name +"<br><input type='text' value='" + value.equipment_id + "' id='Input" + student1 +"'>"
+							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
+							+"</td>";
+							student += "<td>" + value.unlock_stage + '</td>';
+							student += "<td>" + value.level_req + '</td>';
+							student += "<td><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_1 +"'><sub>" + value.mat_1_count +"</sub><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_2 +"'><sub>" + value.mat_2_count +"</sub><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_3 +"'><sub>" + value.mat_3_count +"</sub><img class='lazyload' src='small-loading.gif' data-src='"+value.mat_4 +"'><sub>" + value.mat_4_count +"</sub></td>";
+							student += "<td>" + value.slot + '</td>';
+							student += '</tr>';
+							student1 +=1;
+								}
+
+});
+						
+						//INSERTING ROWS INTO TABLE
+						$('#table').append(student);
+					});
+				});
+				
+
+			</script>
+			<script src="..\..\..\..\..\..\Data\avatarAddress\script.js"></script>
+	</section>
+</body>
+
+</html>

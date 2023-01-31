@@ -5,6 +5,7 @@ rem Install Vietnamese
 chcp 65001
 cls
 rem Create _cd.txt
+title 9CMD - by tanbt
 echo ==========
 echo Create file _cd.txt
 echo.Note: The folder name contains 9CMD

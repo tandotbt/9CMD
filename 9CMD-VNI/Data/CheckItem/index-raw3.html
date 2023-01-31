@@ -11,7 +11,7 @@ if (value.equipped > 0) {
 							student += "<td class='pick'>" +
 								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.image +"'><sub>" + value.level +'</sub></td>';
 
-							student += "<td class='pickAndEquip'><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
+							student += "<td class='pickAndEquip'>"+ value.name +"<br><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
 							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
 							+"</td>";
 
@@ -26,6 +26,10 @@ if (value.equipped > 0) {
 						
 							student += "<td class='equip'>" +
 								value.CP + '</td>';
+							student += "<td class='equip'>" +
+								value.unlock_stage + '</td>';
+							student += "<td class='equip'>" +
+								value.level_req + '</td>';
 							student += '</tr>';
 							student1 +=1;
 						} else {
@@ -34,7 +38,7 @@ if (value.equipped > 0) {
 							student += "<td class='equip'>" +
 								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.image +"'><sub>" + value.level +'</sub></td>';
 
-							student += "<td class='equip'><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
+							student += "<td class='equip'>"+ value.name +"<br><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
 							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
 							+"</td>";
 
@@ -49,6 +53,10 @@ if (value.equipped > 0) {
 						
 							student += "<td class='equip'>" +
 								value.CP + '</td>';
+							student += "<td class='equip'>" +
+								value.unlock_stage + '</td>';
+							student += "<td class='equip'>" +
+								value.level_req + '</td>';
 							student += '</tr>';
 							student1 +=1;
 								}
@@ -60,7 +68,7 @@ if (value.equipped > 0) {
 							student += "<td class='pick'>" +
 								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.image +"'><sub>" + value.level +'</sub></td>';
 
-							student += "<td class='pick'><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
+							student += "<td class='pick'>"+ value.name +"<br><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
 							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
 							+"</td>";
 
@@ -74,6 +82,10 @@ if (value.equipped > 0) {
 								value.skills + '</td>';							
 							student += "<td class='pick'>" +
 								value.CP + '</td>';
+							student += "<td class='pick'>" +
+								value.unlock_stage + '</td>';
+							student += "<td class='pick'>" +
+								value.level_req + '</td>';
 							student += '</tr>';
 							student1 +=1;
 						} else {
@@ -82,7 +94,7 @@ if (value.equipped > 0) {
 							student += "<td>" +
 								 "<img class='lazyload element' src='small-loading.gif' data-src='" + value.elementalType +"'>"+ "<img class='lazyload' src='small-loading.gif' data-src='"+value.image +"'><sub>" + value.level +'</sub></td>';
 
-							student += "<td><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
+							student += "<td>"+ value.name +"<br><input type='text' value='" + value.itemId + "' id='Input" + student1 +"'>"
 							+ "<div class='tooltip'><button onclick='copy"+ student1 + "()' onmouseout='out"+ student1 + "()'><span class='tooltiptext' id='Tooltip"+ student1 +"'>Copy to clipboard</span>Copy ID</button></div>"
 							+"</td>";
 
@@ -96,6 +108,10 @@ if (value.equipped > 0) {
 								value.skills + '</td>';							
 							student += "<td>" +
 								value.CP + '</td>';
+							student += "<td>" +
+								value.unlock_stage + '</td>';
+							student += "<td>" +
+								value.level_req + '</td>';
 							student += '</tr>';
 							student1 +=1;
 								}

@@ -4,6 +4,8 @@ color 0B
 rem Install Vietnamese
 chcp 65001
 cls
+rem Set %_cd% origin
+set /p _cd=<_cd.txt
 set _stt=%1
 set _vi=**********************
 set _9cscanBlock=*******
@@ -15,8 +17,6 @@ set /p _node=<%_cd%\data\_node.txt
 set _node=%_node: =%
 :BatDau
 rem setlocal ENABLEDELAYEDEXPANSION
-rem Set %_cd% origin
-set /p _cd=<_cd.txt
 set _stt=%_stt%
 call :background
 rem Check if there is a wallet folder yet
@@ -65,8 +65,7 @@ rem Take the number of characters
 echo.└──── Take the number of characters ...
 jq "length" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json > %_cd%\user\trackedAvatar\%_folderVi%\_length.txt 2>nul
 set /p _length=<%_cd%\user\trackedAvatar\%_folderVi%\_length.txt
-if not %_length% geq 2 (if %_length% leq 4 (echo. & echo Error 1: Wrong wallet, no character & echo.or 9cscan error, try again ... & color 4F & timeout 5 & goto :BatDau))
-set /a _length+=-1
+if not %_length% geq 1 (if not %_length% leq 3 (echo. & echo Error 1: Wrong wallet, no character & echo.or 9cscan error, try again ... & color 4F & timeout 5 & goto :BatDau))
 rem Get Stake level to find AP consumption
 echo.└──── Get the AP number consumed by Stake level ...
 cd %_cd%\user\trackedAvatar\%_folderVi%
@@ -76,7 +75,7 @@ curl --header "Content-Type: application/json" --data "@input.json" --show-error
 echo 5 > _stakeAP.txt
 rem Filter the results of data
 findstr /i null output.json> nul
-if %errorlevel% == 1 ("%_cd%\batch\jq.exe" -r ".data.stateQuery.stakeStates|.[]|.deposit|tonumber|if . > 500000 then 3 elif . > 5000 then 4 else 5 end" output.json > _stakeAP.txt 2>nul)
+if %errorlevel% == 1 ("%_cd%\batch\jq.exe" -r ".data.stateQuery.stakeStates|.[]|.deposit|tonumber|if . >= 500000 then 3 elif . >= 5000 then 4 else 5 end" output.json > _stakeAP.txt 2>nul)
 set /p _stakeAP=<_stakeAP.txt & set /a _stakeAP=%_stakeAP% 2>nul
 rem Delete the draft file input and output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\input.json 2>nul
@@ -105,7 +104,9 @@ echo.└──── Input data character %_charCount% ...
 cd %_cd%\batch\avatarAddress
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%"
 if not exist %_folder% (md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%)
-jq ".[%_charCount%]|del(.refreshBlockIndex)|del(.avatarAddress)|del(.address)|del(.goldBalance)|.[]|{address, name, level, actionPoint,timeCount: (.dailyRewardReceivedIndex+1700-%_9cscanBlock%)}" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json 2>nul
+set "_temp="
+set /a _temp=%_charCount%-1
+jq ".[%_temp%]|del(.refreshBlockIndex)|del(.avatarAddress)|del(.address)|del(.goldBalance)|.[]|{address, name, level, actionPoint,timeCount: (.dailyRewardReceivedIndex+1700-%_9cscanBlock%)}" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json 2>nul
 jq "{sec: ((.timeCount*12)%%60),minute: ((((.timeCount*12)-(.timeCount*12)%%60)/60)%%60),hours: (((((.timeCount*12)-(.timeCount*12)%%60)/60)-(((.timeCount*12)-(.timeCount*12)%%60)/60%%60))/60)}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.json 2>nul
 jq -j """\(.hours):\(.minute):\(.sec)""" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.txt 2>nul
 jq -r ".address" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt 2>nul
@@ -117,15 +118,23 @@ rem Get opened stage
 echo.└────── Get opened stage ...
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _AddressChar=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_AddressChar%\"){stageMap{count}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_AddressChar%\"){actionPoint,dailyRewardReceivedIndex,level,stageMap{count}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 rem Filter the results of data
 "%_cd%\batch\jq.exe" -r "..|.count?|select(.)" output.json > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_stage.txt 2>nul
+echo.└────── Get AP and the time of refill AP ...
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar.actionPoint" output.json > _actionPoint.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar|.dailyRewardReceivedIndex+1700-%_9cscanBlock%" output.json > _timeCount.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar|.dailyRewardReceivedIndex+1700-%_9cscanBlock%|{sec: ((.*12)%%60),minute: ((((.*12)-(.*12)%%60)/60)%%60),hours: (((((.*12)-(.*12)%%60)/60)-(((.*12)-(.*12)%%60)/60%%60))/60)}" output.json > _infoCharAp.json 2>nul
+"%_cd%\batch\jq.exe" -j """\(.hours):\(.minute):\(.sec)""" _infoCharAp.json> _infoCharAp.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar.level" output.json> _level.txt 2>nul
 rem Delete the draft file input and output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\input.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\output.json 2>nul
+set /a _stage=0
 set /p _stage=<_stage.txt
+if %_stage% == 0 (echo.Error 1.1: Opened stage not found & echo.the cause is node broken & echo.use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & color 4F & timeout 5 & goto :BatDau)
 rem Create necessary files
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt"
 if not exist %_file% (echo 0 > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt)
@@ -184,7 +193,7 @@ echo.└────── Create html file to see items ...
 xcopy "%_cd%\data\CheckItem\" "%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem\" >nul
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem
-call "%_cd%\batch\TaoInputJson.bat" _IDapiJson %_urlJson% index-raw.html> index-raw2.html 2>nul
+echo $.getJSON("https://jsonblob.com/api/jsonBlob/%_urlJson%",> index-raw2.html 2>nul
 type index-raw1.html index-raw2.html index-raw3.html> index.html 2>nul
 del /q index-raw1.html index-raw2.html index-raw3.html index-raw.html
 :locChar2
@@ -205,54 +214,73 @@ if not exist %_file% (
 echo.└────── Tạo file 888888.json xem vật phẩm cho Repeat ...
 echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json
 )
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :locChar)
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :locChar)
 :displayVi
+echo.───── Complete!
+timeout 2 >nul
 call :background
 set _hdsdRepeat=0
 set _msgRefillAP=0
 rem Display information
 set _charCount=1
 :displayChar
-call :background2 %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar)
+call :background2
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar)
 rem Try auto Refill AP
 set _charCount=1
 :displayChar1
-call :tryRefillAP %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar1)
+call :tryRefillAP
+if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% lss %_stakeAP% (if %_autoRefillAP% == 1 (call :autoRefillAP & goto :duLieuViCu)))))
+if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (set _msgRefillAP=1))
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar1)
 rem Try auto Sweep
 set _charCount=1
 :displayChar2
-call :tryAutoSweep %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar2)
+call :tryAutoSweep
+set "_temp="
+set _temp=%_howManyTurn%
+if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
+set /a _howManyAP=%_stakeAP%*%_temp%
+if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoSweep & goto :duLieuViCu)))))
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar2)
 rem Try auto Repeat
 set _charCount=1
 :displayChar3
-call :tryAutoRepeat %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar3)
+call :tryAutoRepeat
+set "_temp="
+set _temp=%_howManyTurn%
+if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
+set /a _howManyAP=%_stakeAP%*%_temp%
+if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_autoUseAPPotionOnOff% == 1 (if %_actionPoint% lss %_stakeAP% (call :tryAutoUseAPpotion & goto :duLieuViCu)))))
+if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoRepeat & goto :duLieuViCu)))))
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar3)
 if %_hdsdRepeat% == 1 (echo [40;95mType Repeat[40;96m / [40;94mAuto Open World [40;93mAuto AP potion [40;92mRepert x turn[40;96m) else (echo.)
 echo.[40;96m==========
 if %_msgRefillAP% == 0 (goto :displayChar6)
+set /a _tempCountDisplay=0
 :msgDisplayChar
+set /a _tempCountDisplay+=1
 rem Display information
 set _charCount=1
 :displayChar4
 call :background
 :displayChar5
-call :background2 %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar5)
+call :background2
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar5)
 timeout 1 >nul
+%_cd%\data\flashError.exe
 color 6F
+if %_tempCountDisplay% gtr 20 (goto :duLieuViCu)
 choice /c 12 /n /t 1 /d 1 /m "└── Can refill AP, press [2] to escape ..."
 if %errorlevel%==1 (goto :msgDisplayChar)
 if %errorlevel%==2 (set _canAutoOnOff=0 & echo.└── Updating ... & goto :duLieuViCu)
 :displayChar6
 if %_canAutoOnOff% == 1 (
-	echo.[1] Update, automatically after 60s	[40;92m╔═══════════════╗[40;96m
+	echo.[1] Update, automatically after 60s	[40;92m╔═ [%_autoRefillAP%] [%_autoSweepOnOffAll%] [%_autoRepeatOnOffAll%] ═╗[40;96m
 	echo.[2] Setting Auto			[40;92m║4.Turn OFF Auto║[40;96m
 	echo.[3] User guide				[40;92m╚═══════════════╝[40;96m
 	) else (
-		echo.[1] Update, automatically after 60s	[40;97m╔═══════════════╗[40;96m
+		echo.[1] Update, automatically after 60s	[40;97m╔═ [%_autoRefillAP%] [%_autoSweepOnOffAll%] [%_autoRepeatOnOffAll%] ═╗[40;96m
 		echo.[2] Setting Auto			[40;97m║4.Turn ON Auto ║[40;96m
 		echo.[3] User guide				[40;97m╚═══════════════╝[40;96m
 		)
@@ -275,13 +303,12 @@ if not %_canAuto%==5 echo ║ID %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║   
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 exit /b
 :background2
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_autoSweepRepeatOnOffChar% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_autoSweepRepeatOnOffChar% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2Background2)
@@ -329,23 +356,18 @@ if %_timeCount% lss 0 (
 		echo.║Refill	:%_infoCharAp:~-20%	%_SweepOrRepeatNow%║
 		echo.╚═══════════════════════════════════════════════════════╝
 		)
-exit /b
+goto:eof
 :tryRefillAP
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
-rem Check can auto refill AP or not
-if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% lss %_stakeAP% (if %_autoRefillAP% == 1 (call :autoRefillAP)))))
-if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (set _msgRefillAP=1))
-exit /b
+goto:eof
 :tryAutoSweep
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
 if not %_autoSweepRepeatOnOffChar% == 1 (exit /b)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2tryAutoSweep)
@@ -370,22 +392,15 @@ set /p _repeatXturn=<%cd%\module\_repeatXturn.txt
 set /a _autoOpenMapOnOff=%_autoOpenMapOnOff% 2>nul
 set /a _autoUseAPPotionOnOff=%_autoUseAPPotionOnOff% 2>nul
 set /a _repeatXturn=%_repeatXturn% 2>nul
-rem Check can Auto sweep or not
-set "_temp="
-set _temp=%_howManyTurn%
-if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
-set /a _howManyAP=%_stakeAP%*%_temp%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% gtr %_stakeAP% (call :autoSweep)))))
-exit /b
+goto:eof
 :tryAutoRepeat
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
 if not %_autoSweepRepeatOnOffChar% == 2 (exit /b)
 set _hdsdRepeat=1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2tryAutoRepeat)
@@ -410,26 +425,18 @@ set /p _repeatXturn=<%cd%\module\_repeatXturn.txt
 set /a _autoOpenMapOnOff=%_autoOpenMapOnOff% 2>nul
 set /a _autoUseAPPotionOnOff=%_autoUseAPPotionOnOff% 2>nul
 set /a _repeatXturn=%_repeatXturn% 2>nul
-rem Try auto repeat
-set "_temp="
-set _temp=%_howManyTurn%
-if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
-set /a _howManyAP=%_stakeAP%*%_temp%
-if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_autoUseAPPotionOnOff% == 1 (if %_actionPoint% lss %_stakeAP% (call :tryAutoUseAPpotion)))))
-if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% gtr %_stakeAP% (call :autoRepeat)))))
-exit /b
+goto:eof
 :background3
 call :background
-set /a _charDisplay=%1
 rem Check whether or not the character
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%"
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%"
 if not exist %_folder% (goto :settingAuto)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2Background3)
@@ -446,9 +453,9 @@ for /f "usebackq %skip% delims=" %%a in (%INPUT_FILE%) do set "randline=%%a" & g
 rem echo Line #%randnum% is:
 echo/%randline% > _stage.txt
 :continue2Background3
-set /p _stageSweepOrRepeat=<_stage.txt & set /p _autoSweepRepeatOnOffChar=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\_autoSweepRepeatOnOffChar.txt & set /p _howManyTurn=<_howManyTurn.txt 
+set /p _stageSweepOrRepeat=<_stage.txt & set /p _autoSweepRepeatOnOffChar=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
-echo.Character %_charDisplay%	[40;33mSweep on[40;96m	[40;35mRepeat on[40;96m
+echo.Character %_charCount%	[40;33mSweep on[40;96m	[40;35mRepeat on[40;96m
 set /p _typeRepeat=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\_typeRepeat.txt
 set _typeRepeat=%_typeRepeat: =%
 set _name=                    %_name%
@@ -488,13 +495,13 @@ if %_temp% == 1 (
 					echo.╚═══════════════════════════════════════════════════════╝[40;96m
 				)
 			)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%		
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%		
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt		
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 set /p _stageSweepOrRepeat=<_stage.txt
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul
-exit /b
+goto:eof
 :settingAuto
 if %_chuyendoi% == 0 (goto :gotoRefillAP)
 if %_chuyendoi% == 1 (goto :gotoSweep)
@@ -517,7 +524,9 @@ echo.==========
 echo.[40;97mMenu Auto Refill AP[40;96m
 echo.[1..5] Enter enough to auto
 echo.==========
-echo.[6, 7] Return
+echo.[6] Module Auto Craft
+echo.==========
+echo.[7] Return
 echo.[8] Turn on / off auto Refill AP main
 echo.[9] Switch to settings Auto Sweep
 choice /c 123456789 /n /m "Enter the number from the keyboard: "
@@ -526,7 +535,7 @@ if %errorlevel% equ 2 (goto :password)
 if %errorlevel% equ 3 (goto :publickey)
 if %errorlevel% equ 4 (goto :KeyID)
 if %errorlevel% equ 5 (goto :utcFile)
-if %errorlevel% equ 6 (goto :displayVi)
+if %errorlevel% equ 6 (goto :modulePlus)
 if %errorlevel% equ 7 (goto :displayVi)
 if %errorlevel% equ 8 (goto :autoRefillAPOnOff)
 if %errorlevel% equ 9 (goto :gotoSweep)
@@ -536,7 +545,7 @@ set /a _chuyendoi=1
 set /a _charCount=1
 :gotoSweep1
 mode con:cols=60 lines=35
-call :background3 %_charCount%
+call :background3
 set "_temp="
 set /a _temp=%_actionPoint%/%_stakeAP%
 set _temp=  %_temp%
@@ -583,7 +592,7 @@ set /a _chuyendoi=2
 set /a _charCount=1
 :gotoClimbingChilling1
 mode con:cols=60 lines=35
-call :background3 %_charCount%
+call :background3
 set "_temp="
 set /a _temp=%_actionPoint%/%_stakeAP%
 set "_temp1="
@@ -623,6 +632,20 @@ if %errorlevel% equ 6 (mode con:cols=60 lines=25 & goto :moduleRepeat)
 if %errorlevel% equ 7 (mode con:cols=60 lines=25 & goto :displayVi)
 if %errorlevel% equ 8 (mode con:cols=60 lines=25 & goto :autoRepeatOnOffAll)
 if %errorlevel% equ 9 (mode con:cols=60 lines=25 & goto :gotoRefillAP)
+goto :settingAuto
+:modulePlus
+echo.Module Plus for wallets %_stt%
+echo.Using node %_node%
+echo.
+echo.[1] Auto craft / upgrade equipment
+rem choice /c 12 /n /m "Nhập số từ bàn phím: "
+rem if %errorlevel% == 1 (set /a _temp1=1)
+rem if %errorlevel% == 2 (set /a _temp1=1)
+choice /c 123 /m "Choose character: "
+set _temp2=%errorlevel%
+set _folder="%_cd%\User\trackedAvatar\%_folderVi%\char%_temp2%"
+if not exist %_folder% (echo.Character's data saving folder not found %_temp2% & timeout 3 >nul & goto :modulePlus)
+start %_cd%\batch\avatarAddress\autoCraft.bat %_stt% %_temp2%
 goto :settingAuto
 :importTrangBiType
 call :background
@@ -732,7 +755,7 @@ echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{i
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
 rem Filter the results of data
-%_cd%\batch\jq.exe -r ".data.stateQuery.avatar.inventory.items|[.[].count]|add" output.json > _countAPPotion.txt 2>nul
+%_cd%\batch\jq.exe -r ".data.stateQuery.avatar.inventory.items|(if ([.[].count]|add) == null then 0 else ([.[].count]|add) end)" output.json > _countAPPotion.txt 2>nul
 set /p _countAPPotion=<_countAPPotion.txt
 set /a _countAPPotion=%_countAPPotion% 2>nul
 del /q input.json output.json _countAPPotion.txt
@@ -740,7 +763,7 @@ echo.==========
 echo Character	:	%_charCount%
 echo Name		:	%_name%
 echo Stage		:	%_stage%
-if %_countAPPotion% lss 0 (echo Have	:	[40;91m%_countAPPotion%[40;96m AP Potion) else (echo Have	:	[40;32m%_countAPPotion%[40;96m AP Potion)
+if %_countAPPotion% leq 0 (echo Have		:	[40;91m%_countAPPotion%[40;96m AP Potion) else (echo Have		:	[40;32m%_countAPPotion%[40;96m AP Potion)
 echo [1] Turn on / off auto use AP potion
 echo [2] Return
 choice /c 12 /n /m "Enter number from the keyboard: "
@@ -812,14 +835,14 @@ if %_stageSweepOrRepeat% == 0 (echo 1 > _stage.txt) else (echo 0 > _stage.txt)
 goto :gotoClimbingChilling1)
 :charRepeatOnOff
 if not %_autoSweepRepeatOnOffChar% == 2 (set /a _autoSweepRepeatOnOffChar=2) else (set /a _autoSweepRepeatOnOffChar=0)
-echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\_autoSweepRepeatOnOffChar.txt
+echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt
 goto :gotoClimbingChilling1
 :charSweepOnOff
 if not %_autoSweepRepeatOnOffChar% == 1 (set /a _autoSweepRepeatOnOffChar=1) else (set /a _autoSweepRepeatOnOffChar=0)
-echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\_autoSweepRepeatOnOffChar.txt
+echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt
 goto :gotoSweep1
 :howManyTurn
-call :background3 %_charCount%
+call :background3
 echo.[40;96m==========
 set /a _maxTurn=120/%_stakeAP%
 set _maxTurn=  %_maxTurn%
@@ -844,15 +867,15 @@ set "var="&for /f "delims=0123456789" %%i in ("%_pickHowManyTurn%") do set var=%
 if defined var (echo Error 2: Wrong type input, try again ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
 rem Check if the turn is > the max turn or not
 if %_pickHowManyTurn% gtr %_maxTurn% (echo Error 3: %_pickHowManyTurn% bigger %_maxTurn% turn, try again ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 echo %_pickHowManyTurn% > _howManyTurn.txt
 if %_chuyendoi% == 1 (goto :gotoSweep1)
 if %_chuyendoi% == 2 (goto :gotoClimbingChilling1)
 :pickStage
-call :background3 %_charCount%
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+call :background3
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 echo.[40;96m==========
 echo.
 echo.The Stage(s) are saved:
@@ -876,16 +899,16 @@ set "_temp="
 set /a _temp=%_stage%+1
 if %_chuyendoi% == 1 (if %_pickStage% gtr %_stage% (echo Error 3: Stage %_pickStage% larger than the stage allowed to sweep, try again ... & color 4F & timeout 5 & set "_pickStage=" & goto :pickStage))
 if %_chuyendoi% == 2 (if %_pickStage% gtr %_temp% (echo Error 3: Stage %_pickStage% larger than the stage allowed to repeat, try again ... & color 4F & timeout 5 & set "_pickStage=" & goto :pickStage))
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 echo %_pickStage% >> _stageRandom.txt
 :pickStage1
-call :background3 %_charCount%
+call :background3
 echo.[40;96m==========
 echo.
 echo.The Stage(s) are saved:
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 type _stageRandom.txt
 echo.==========
 echo.
@@ -992,12 +1015,15 @@ echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{e
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Filter the results of data
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED.txt output1.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED.txt output1.json> output2.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req,picked: 1}]" output4.json> output.json 2>nul
 rem Push file output.json to https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Filter for equipment if Equipped
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED2.txt output.json> _temp.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED2.txt output2.json> _temp.json 2>nul
 if %_chuyendoi% == 1 (
 	copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_itemEquip.json>nul
 	goto :importTrangBiEquippedEnd
@@ -1018,10 +1044,7 @@ if %_chuyendoi% == 2 (
 )
 :importTrangBiEquippedEnd
 rem Delete the draft file input and output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output.json 2>nul
-del /q _temp.json 2>nul
+del /q _temp.json input.json output.json output1.json output2.json output3.json output4.json 2>nul
 echo.└──── Successful get equipped ID item(s) ...
 timeout 3 >nul
 goto :importTrangBi
@@ -1057,17 +1080,20 @@ rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Filter the results of data
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_weapon%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_weapon%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Push file output.json to https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Delete the draft file input and output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiWeapon1
-call :background3 %_charCount%
+echo.└── Get the current block ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Refresh the website to apply the equipment Weapon
 echo.==========
@@ -1084,6 +1110,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _weapon="Enter the item of equipment: "
 	set _weapon=!_weapon: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_weapon!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Error 1: This equipment may be being craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiWeapon1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon: \"!_weapon!\",armor,belt,necklace,ring1,ring2}" _itemEquip.json> _temp.json
@@ -1147,17 +1182,20 @@ rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Filter the results of data
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterARMOR.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_armor%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_armor%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Push file output.json to https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Delete the draft file input and output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiArmor1
-call :background3 %_charCount%
+echo.└── Get the current block ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Refresh the website to apply the equipment Armor
 echo.==========
@@ -1174,6 +1212,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _armor="Enter the item of equipment: "
 	set _armor=!_armor: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_armor!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Error 1: This equipment may be being craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiArmor1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon,armor: \"!_armor!\",belt,necklace,ring1,ring2}" _itemEquip.json> _temp.json 2>nul
@@ -1235,19 +1282,21 @@ set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
-rem Filter the results of data
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_belt%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_belt%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Push file output.json to https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Delete the draft file input and output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiBelt1
-call :background3 %_charCount%
+echo.└── Get the current block ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Refresh the website to apply the equipment Belt
 echo.==========
@@ -1264,6 +1313,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _belt="Enter the item of equipment: "
 	set _belt=!_belt: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_belt!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Error 1: This equipment may be being craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiBelt1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon,armor,belt: \"!_belt!\",necklace,ring1,ring2}" _itemEquip.json> _temp.json 2>nul
@@ -1327,17 +1385,20 @@ rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Filter the results of data
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterNECKLACE.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_necklace%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_necklace%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Push file output.json to https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Delete the draft file input and output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiNecklace1
-call :background3 %_charCount%
+echo.└── Get the current block ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Refresh the website to apply the equipment Necklace
 echo.==========
@@ -1354,6 +1415,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _necklace="Enter the item of equipment: "
 	set _necklace=!_necklace: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_necklace!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Error 1: This equipment may be being craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiNecklace1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon,armor,belt,necklace: \"!_necklace!\",ring1,ring2}" _itemEquip.json> _temp.json 2>nul
@@ -1421,17 +1491,20 @@ rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Filter the results of data
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Push file output.json to https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Delete the draft file input and output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing11
-call :background3 %_charCount%
+echo.└── Get the current block ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Refresh the website to apply the equipment Ring1
 echo.==========
@@ -1449,6 +1522,15 @@ set "_ring1= "
 echo.
 set /p _ring1="Enter the item of equipment: "
 set _ring1=!_ring1: =!
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_ring1!>nul
+if !errorlevel! == 0 (
+	echo.
+	echo Error 1: This equipment may be being craft / upgrade ...
+	color 4F
+	endlocal
+	timeout 5
+	goto :importTrangBiRing12
+	)
 if "!_ring1!" equ "!_ring2!" (
 	if not "!_ring1!" equ "" (
 		echo.
@@ -1524,17 +1606,20 @@ rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Filter the results of data
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Push file output.json to https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Delete the draft file input and output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing21
-call :background3 %_charCount%
+echo.└── Get the current block ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Refresh the website to apply the equipment Ring2
 echo.==========
@@ -1552,6 +1637,15 @@ set "_ring2= "
 echo.
 set /p _ring2="Enter the item of equipment: "
 set _ring2=!_ring2: =!
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_ring2!>nul
+if !errorlevel! == 0 (
+	echo.
+	echo Error 1: This equipment may be being craft / upgrade ...
+	color 4F
+	endlocal
+	timeout 5
+	goto :importTrangBiRing12
+	)
 if "!_ring2!" equ "%_ring1%" (
 	if not "!_ring2!" equ "" (
 		echo.
@@ -1760,10 +1854,9 @@ curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9csca
 :9cscanPublicKey2
 rem Filter the results of data
 echo.└── Find Public Key of the wallet %_vi:~0,7%*** ...
-call :ReadJsonbat publicKey
-copy %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json %_cd%\user\trackedAvatar\%_folderVi%\auto\publickey\_publickey.txt> nul
+"%_cd%\batch\jq" -r "..|.publicKey?|select(.)" %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json> %_cd%\user\trackedAvatar\%_folderVi%\auto\publickey\_publickey.txt 2>nul
 set /p _publickey=<%_cd%\user\trackedAvatar\%_folderVi%\auto\publickey\_publickey.txt
-del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json
+del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json
 echo.└──── Get Public Key of wallet %_vi:~0,7%*** successful
 echo.
 set /a _publickeyOK=1
@@ -1911,7 +2004,7 @@ del /q _vi.json & del /q _viLowcase.txt
 curl --ssl-no-revoke --header "Content-Type: application/json" https://api.tanvpn.tk/donater?vi=%_viLowcase%> _KtraDonater.json 2>nul
 findstr /i %_viLowcase% _KtraDonater.json>nul
 if %errorlevel%==1 (set /a _HanSuDung=0 & goto :premium1)
-"%_cd%\batch\jq.exe" -r ".[].block" _KtraDonater.json> _HanSuDung.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".[].block-%_9cscanBlock%" _KtraDonater.json> _HanSuDung.txt 2>nul
 set /p _HanSuDung=<_HanSuDung.txt & del /q _HanSuDung.txt & del /q _KtraDonater.json
 set /a _premiumTXOK=1
 :premium1
@@ -1975,7 +2068,7 @@ del /q _vi.json & del /q _viLowcase.txt
 curl --ssl-no-revoke --header "Content-Type: application/json" https://api.tanvpn.tk/donater?vi=%_viLowcase%> _KtraDonater.json 2>nul
 findstr /i %_viLowcase% _KtraDonater.json>nul
 if %errorlevel%==1 (echo. & echo Error 1: You are not Donater, try again ... & del /q _KtraDonater.json & color 4F & timeout 5 & goto :premium)
-"%_cd%\batch\jq.exe" -r ".[].block" _KtraDonater.json> _HanSuDung.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".[].block-%_9cscanBlock%" _KtraDonater.json> _HanSuDung.txt 2>nul
 set /p _HanSuDung=<_HanSuDung.txt & del /q _HanSuDung.txt & del /q _KtraDonater.json
 set /a _premiumTXOK=1
 goto :settingAuto
@@ -1985,38 +2078,37 @@ if %_NCGbuyi%==8 echo %*> _NCGticker.txt 2>nul
 if %_NCGbuyi%==10 echo %*> _NCGbuy.txt 2>nul & set /p _NCGbuy=<_NCGbuy.txt & set /a _NCGbuy=%_NCGbuy:~0,-2% & del /q _NCGbuy.txt
 set /a _NCGbuyi+=1
 exit /b
-:ReadJsonbat
-"%_cd%\batch\jq" -r "..|.%1?|select(.)" %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json> %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json 2>nul
-del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json
-exit /b
 :autoRefillAP
 echo.└── Start Auto Refill AP character: %_name% ...
 rem Create data saving folders
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 echo off
-echo Step 0: Check previous Refill AP transactions
 rem Check whether the previous transactions are successful or not
+echo ==========
+echo Step 0: Check previous Sweep transactions
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
 echo Step 1: Get unsignedTransaction
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/refillAP --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul & set /p _kqua=<_kqua.txt
-if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2028,7 +2120,7 @@ goto :KTraSignature1
 :KTraSignature1
 set "_signature="
 set /p _signature=<_signature.txt
-if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ... & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -2037,10 +2129,9 @@ echo.[1] Continue refill AP, automatic after 10s
 echo.[2] Return menu and turn off Auto
 choice /c 12 /n /t 10 /d 1 /m "Enter from the keyboard: "
 if %errorlevel%==1 (goto :tieptucAutoRefillAP)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoRefillAP
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find signTransaction ...
@@ -2050,15 +2141,17 @@ echo ==========
 echo Step 4: Get stageTransaction
 echo.
 set /p _signTransaction=<_signTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Get stageTransaction successful
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoRefillAP
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2068,40 +2161,43 @@ if not %_canAuto%==5 echo ║ID %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║   
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
 echo Step 5: Checking auto Refill AP character: %_name%
+echo.─── Check %_countKtraStaging% time(s)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Refill AP happenning & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after trying again & echo.───  auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after trying again & echo.───  auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Refill AP temporary failure & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after try again auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after try again auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
-goto :duLieuViCu
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+goto:eof
 :autoSweep
 echo.└── Start Auto Sweep Character: %_name% ...
 rem Create data saving folders
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
-jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep\_itemEquip.json> _itemIDList.json 2>nul
+jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_itemEquip.json> _itemIDList.json 2>nul
 set /p _itemIDList=<_itemIDList.json
 echo off
-echo Step 0: Check previous Sweep transactions
 rem Check whether the previous transactions are successful or not
+echo ==========
+echo Step 0: Check previous Sweep transactions
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep8^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep8^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -2117,10 +2213,12 @@ if %_temp% leq 250 (if %_temp% geq 201 (echo 5 > _world.txt 2>nul))
 if %_temp% leq 300 (if %_temp% geq 251 (echo 6 > _world.txt 2>nul))
 if %_temp% leq 350 (if %_temp% geq 301 (echo 7 > _world.txt 2>nul))
 set /p _world=<_world.txt
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%","world": "%_world%","stageSweep": "%_temp%","howManyAP": "%_howManyAP%","itemIDList": %_itemIDList%}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%","world": "%_world%","stageSweep": "%_temp%","howManyAP": "%_howManyAP%","itemIDList": %_itemIDList%}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/autoSweep --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get the value exceeds 1024 characters
@@ -2129,7 +2227,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep1
 )
 :autoSweep1
-if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2146,7 +2244,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep2
 )
 :autoSweep2
-if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ...  & echo.─── wait 10 minutes after trying again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ...  & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -2155,10 +2253,9 @@ echo.[1] Continue sweep, automatic after 10s
 echo.[2] Return menu and turn off Auto
 choice /c 12 /n /t 10 /d 1 /m "Enter from the keyboard: "
 if %errorlevel%==1 (goto :tieptucAutoSweep)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoSweep
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find signTransaction ...
@@ -2173,15 +2270,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :autoSweep3
 )
 :autoSweep3
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Get stageTransaction successful
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoSweep
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2190,29 +2289,31 @@ if %_canAuto%==5 echo ║ID %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║   ║
 if not %_canAuto%==5 echo ║ID %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║   ║[40;97mCan Auto? [ ]	[40;96m║
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
-echo Step 5: Checking auto Refill AP character: %_name%
+echo Step 5: Checking auto Sweep character: %_name%
+echo.─── Check %_countKtraStaging% time(s)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Sweep happenning & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again & echo.───  auto Sweep, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again & echo.───  auto Sweep, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Sweep temporary failure & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after trying again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
-goto :duLieuViCu
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+goto:eof
 :autoRepeat
 echo.└── Start Auto Repeat character: %_name% ...
 rem Create data saving folders
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 rem Select the repeat type
 echo.Picked [40;95mtype %_typeRepeat%[40;96m
@@ -2229,33 +2330,40 @@ if %_typeRepeat% == 2 (goto :autoRepeat2)
 if %_typeRepeat% == 3 (goto :autoRepeat3)
 echo Level character	:	%_level%
 echo Picked setup	:	0.json
-jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\0.json> _itemIDList.json 2>nul
+jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\0.json> _itemIDList.json 2>nul
 goto :autoRepeat4
 :autoRepeat2
 setlocal enabledelayedexpansion
 set max=0
 rem Get setup equipment by level
-for %%x in (%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\*.json) do (
+for %%x in (%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\*.json) do (
   set "FileEquipType2=%%~nx"
   if !FileEquipType2! gtr !max! (if !FileEquipType2! leq !_level! (set max=!FileEquipType2!))
 )
 echo Level character	:	%_level%
 echo Picked setup	:	%max%.json
-jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\%max%.json> _itemIDList.json 2>nul
+jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\%max%.json> _itemIDList.json 2>nul
 endlocal
 goto :autoRepeat4
 :autoRepeat3
 echo Level character	:	%_level%
 echo Picked setup	:	888888.json
-echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json
+echo.└── Get the current block ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json
 echo.└── Taking equipment data ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 rem Filter the results of data
-echo.───── Choose  Weapon ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output.json> output1.json 2>nul
+echo.───── Choose Weapon ...
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output.json> output11.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output11.json> output12.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output13.json 2>nul
+type output12.json output13.json> output14.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output14.json> output1.json 2>nul
 if %_level% leq 19 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output1.json > _weapon.txt 2>nul)
 if %_level% leq 39 (if %_level% geq 20 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output1.json > _weapon.txt 2>nul))
 if %_level% leq 49 (if %_level% geq 40 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output1.json > _weapon.txt 2>nul))
@@ -2277,11 +2385,17 @@ set "_weapon= "
 set _file=_weapon.txt
 if exist %_file% (set /p _weapon=<_weapon.txt)
 set _weapon=%_weapon: =%
-%_cd%\batch\jq.exe "{weapon: \"%_weapon%\",armor,belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Selected %_weapon%
+%_cd%\batch\jq.exe "{weapon: \"%_weapon%\",armor,belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
+
 echo.───── Choose Armor ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterARMOR.txt output.json> output2.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterARMOR.txt output.json> output21.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output21.json> output22.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output23.json 2>nul
+type output22.json output23.json> output24.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output24.json> output2.json 2>nul
 if %_level% leq 29 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output2.json > _armor.txt 2>nul)
 if %_level% leq 49 (if %_level% geq 30 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output2.json > _armor.txt 2>nul))
 if %_level% leq 59 (if %_level% geq 50 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output2.json > _armor.txt 2>nul))
@@ -2303,11 +2417,17 @@ set "_armor= "
 set _file=_armor.txt
 if exist %_file% (set /p _armor=<_armor.txt)
 set _armor=%_armor: =%
-%_cd%\batch\jq.exe "{weapon,armor: \"%_armor%\",belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Selected %_armor%
+%_cd%\batch\jq.exe "{weapon,armor: \"%_armor%\",belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
+
 echo.───── Choose Belt ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output.json> output31.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output31.json> output32.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output33.json 2>nul
+type output32.json output33.json> output34.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output34.json> output3.json 2>nul
 if %_level% leq 29 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output3.json > _belt.txt 2>nul)
 if %_level% leq 59 (if %_level% geq 30 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output3.json > _belt.txt 2>nul))
 if %_level% leq 79 (if %_level% geq 60 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output3.json > _belt.txt 2>nul))
@@ -2329,11 +2449,17 @@ set "_belt= "
 set _file=_belt.txt
 if exist %_file% (set /p _belt=<_belt.txt)
 set _belt=%_belt: =%
-%_cd%\batch\jq.exe "{weapon,armor,belt: \"%_belt%\",necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Selected %_belt%
+%_cd%\batch\jq.exe "{weapon,armor,belt: \"%_belt%\",necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
+
 echo.───── Choose Necklace ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterNECKLACE.txt output.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterNECKLACE.txt output.json> output41.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output41.json> output42.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output43.json 2>nul
+type output42.json output43.json> output44.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output44.json> output4.json 2>nul
 if %_level% leq 39 (if %_level% geq 10 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output4.json > _necklace.txt 2>nul))
 if %_level% leq 69 (if %_level% geq 40 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output4.json > _necklace.txt 2>nul))
 if %_level% leq 89 (if %_level% geq 70 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output4.json > _necklace.txt 2>nul))
@@ -2353,11 +2479,17 @@ set "_necklace= "
 set _file=_necklace.txt
 if exist %_file% (set /p _necklace=<_necklace.txt)
 set _necklace=%_necklace: =%
-%_cd%\batch\jq.exe "{weapon,armor,belt,necklace: \"%_necklace%\",ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Selected %_necklace%
+%_cd%\batch\jq.exe "{weapon,armor,belt,necklace: \"%_necklace%\",ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
+
 echo.───── Choose Ring1 and Ring2 ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output.json> output51.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output51.json> output52.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output53.json 2>nul
+type output52.json output53.json> output54.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output54.json> output5.json 2>nul
 if %_level% leq 39 (if %_level% geq 13 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
 if %_level% leq 79 (if %_level% geq 40 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
 if %_level% leq 109 (if %_level% geq 80 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
@@ -2372,6 +2504,7 @@ if %_level% leq 259 (if %_level% geq 252 (jq -r "[.[]|(select(.grade == 1)|selec
 if %_level% leq 269 (if %_level% geq 260 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 4)),(select(.grade == 2)|select(.elementalTypeId <= 4)),(select(.grade == 3)|select(.elementalTypeId <= 4)),(select(.grade == 4)|select((.elementalTypeId >= 1)and(.elementalTypeId <= 3)))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
 if %_level% leq 287 (if %_level% geq 270 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 4)),(select(.grade == 2)|select(.elementalTypeId <= 4)),(select(.grade == 3)|select(.elementalTypeId <= 4)),(select(.grade == 4)|select((.elementalTypeId >= 1)and(.elementalTypeId <= 4)))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
 if %_level% leq 999 (if %_level% geq 288 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 4)),(select(.grade == 2)|select(.elementalTypeId <= 4)),(select(.grade == 3)|select(.elementalTypeId <= 4)),(select(.grade == 4)|select(.elementalTypeId <= 4))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
+
 if %_level% leq 79 (if %_level% geq 46 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[1].itemId|select(.)" output5.json > _ring2.txt 2>nul))
 if %_level% leq 109 (if %_level% geq 80 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[1].itemId|select(.)" output5.json > _ring2.txt 2>nul))
 if %_level% leq 159 (if %_level% geq 110 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2)),(select(.grade == 3)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[1].itemId|select(.)" output5.json > _ring2.txt 2>nul))
@@ -2393,19 +2526,21 @@ set _file=_ring2.txt
 if exist %_file% (set /p _ring2=<_ring2.txt)
 set _ring1=%_ring1: =%
 set _ring2=%_ring2: =%
-%_cd%\batch\jq.exe "{weapon,armor,belt,necklace,ring1: \"%_ring1%\",ring2: \"%_ring2%\"}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Selected %_ring1%
+echo.─────── Selected %_ring2%
+%_cd%\batch\jq.exe "{weapon,armor,belt,necklace,ring1: \"%_ring1%\",ring2: \"%_ring2%\"}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
 set /a _temp=%_stageSweepOrRepeat%
 if %_stageSweepOrRepeat% == 0 (set /a _temp=%_stage%+1 2>nul)
 echo.==========
 echo.[1] Continue
-echo.[2] See the equipment selected with [40;97mStage %_temp%, level %_level%[40;96m
-choice /c 12 /n /t 5 /d 1 /m "└── Automatically select [1] after 5s: "
-if %errorlevel% == 2 (set /a _canAutoOnOff=0 & call :background & set _chuyendoi=2 & goto :importTrangBiRepeatType3)
-if %errorlevel% == 1 (jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _itemIDList.json 2>nul & goto :autoRepeat4)
+echo.[2] Back to menu and turn off auto
+choice /c 12 /n /t 15 /d 1 /m "└── Automatically select [1] after 15s: "
+if %errorlevel% == 2 (set /a _canAutoOnOff=0 & goto:eof)
+if %errorlevel% == 1 (jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _itemIDList.json 2>nul & goto :autoRepeat4)
 :autoRepeat4
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 set /p _itemIDList=<_itemIDList.json
 echo off
 rem Check whether the previous transactions are successful or not
@@ -2416,7 +2551,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash19^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -2432,18 +2567,27 @@ if %_temp% leq 250 (if %_temp% geq 201 (echo 5 > _world.txt 2>nul))
 if %_temp% leq 300 (if %_temp% geq 251 (echo 6 > _world.txt 2>nul))
 if %_temp% leq 350 (if %_temp% geq 301 (echo 7 > _world.txt 2>nul))
 set /p _world=<_world.txt
-rem Auto Poen World
-call :tryOpenWorld
+rem Auto open World
+set _world=%_world: =%
+echo.└── Check world %_world% ...
+if %_world% equ 1 (echo.─── World %_world% opened & goto :skipOpenWorld)
+echo {"query":"query{stateQuery{unlockedWorldIds(avatarAddress:\"%_address%\")}}"} > input.json
+set _temp=^|curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul|findstr /i %_world%]>nul
+if %errorlevel% equ 0 (echo.─── World %_world% opened & goto :skipOpenWorld)
+call :autoOpenWorld & goto :duLieuViCu
+:skipOpenWorld
 set "_temp1=" & set "_temp2=" & set "_temp3="
 set /a _temp1=%_stageSweepOrRepeat%
 if %_stageSweepOrRepeat% == 0 (set /a _temp1=%_stage%+1 2>nul)
 set /a _temp2=%_howManyAP%/%_stakeAP%
 set /a _temp3=%_repeatXturn%*%_stakeAP%
 if %_level% lss %_temp1% (if %_temp3% leq %_actionPoint% (set /a _temp2=%_repeatXturn% 2>nul))
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%","world": "%_world%","stageCC": "%_temp1%","howManyTurn": "%_temp2%","itemIDList": %_itemIDList%}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%","world": "%_world%","stageCC": "%_temp1%","howManyTurn": "%_temp2%","itemIDList": %_itemIDList%}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/ClimbingChilling --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get value exceeding 1024 characters
@@ -2452,7 +2596,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoRepeat5
 )
 :autoRepeat5
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2467,20 +2611,19 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoRepeat6
 )
 :autoRepeat6
-if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
 echo.[40;97mStage %_temp1%, %_temp2% turn(s) với [40;95mtype %_typeRepeat%[40;96m
 echo.
 echo.[1] Continue repeat, automatic after 10s
-echo.[2] Back to the menu and turn off Auto
+echo.[2] Back to menu and turn off Auto
 choice /c 12 /n /t 10 /d 1 /m "Enter number from the keyboard: "
 if %errorlevel%==1 (goto :autoRepeat7)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :autoRepeat7
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find signTransaction ...
@@ -2495,15 +2638,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :autoRepeat8
 )
 :autoRepeat8
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Get stageTransaction successful
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoRepeat
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2514,31 +2659,27 @@ echo.╚═══════════════╝   ╚══════
 echo ==========
 echo Step 5: Check auto Repeat character: %_name%
 echo [40;97mStage %_temp1%, %_temp2% turn(s) with [40;95mtype %_typeRepeat%[40;96m
+echo.─── Check %_countKtraStaging% time(s)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Repeat failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Repeat is taking place & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Repeat temporary failure & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Repeat successful & echo.─── back to the menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Repeat successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto Repeat, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
-goto :duLieuViCu
-:tryOpenWorld
-color 0B
-set _world=%_world: =%
-echo.└── Check world %_world% ...
-if %_world% equ 1 (echo.─── World %_world% unlocked & goto:eof)
-echo {"query":"query{stateQuery{unlockedWorldIds(avatarAddress:\"%_address%\")}}"} > input.json
-set _temp=^|curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul|findstr /i %_world%]>nul
-if %errorlevel% equ 0 (echo.─── World %_world% unlocked & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+goto:eof
+
+:autoOpenWorld
 echo.─── World %_world% not unlocked
-if %_autoOpenMapOnOff% == 1 (goto :tryOpenWorld0) else (color 4F & echo.─── you need unlock world %_world% & echo.─── try again after 60s, ... & timeout 60 & echo.└──── Updating ... & goto :duLieuViCu)
+if %_autoOpenMapOnOff% == 1 (goto :tryOpenWorld0) else (color 4F & echo.─── you need unlock world %_world% & echo.─── try again after 60s, ... & %_cd%\data\flashError.exe & timeout 60 & echo.└──── Updating ... & goto :duLieuViCu)
 :tryOpenWorld0
 echo ==========
 echo.└── Start auto unlock World %_world%
@@ -2579,7 +2720,7 @@ echo Next world %_temp4% need [40;97m%_temp5% CRYSTAL[40;96m
 set /a _temp=%_temp5%-%_crystal%
 if %_temp5% geq %_crystal% (
 echo.Need %_temp% CRYSTAL to unlock next world
-color 4F & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu
+color 4F & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof
 )
 :tryOpenWorld1
 echo.└──── Start aotu open the world %_world%
@@ -2624,20 +2765,18 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryOpenWorld3
 )
 :tryOpenWorld3
-if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 4: Get signTransaction
 echo.
 echo.[1] Continue open World %_world%, automatic after 10s
-echo.[2] Back to the menu and turn off Auto
+echo.[2] Back to menu and turn off Auto
 choice /c 12 /n /t 10 /d 1 /m "Enter number from the keyboard: "
 if %errorlevel%==1 (goto :tryOpenWorld4)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryOpenWorld4
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_unsignedTransaction% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
-rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nulrem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
@@ -2651,15 +2790,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :tryOpenWorld5
 )
 :tryOpenWorld5
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Get stageTransaction successful
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoOpenWorld
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2669,27 +2810,29 @@ if not %_canAuto%==5 echo ║ID %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║   
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
 echo Step 6: Check auto open world %_world% character: %_name%
+echo.─── Check %_countKtraStaging% time(s)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto open world failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto open World is taking place & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto open World temporary failure & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto open World successful & echo.─── tiếp tục sau 20s ...  & timeout /t 20 /nobreak & goto :tryOpenWorld)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto open World successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto open World, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 goto:eof
 :tryAutoUseAPpotion
 rem Create data saving folders
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 echo.└── Start auto use AP potion character %_name% ...
 rem Check the balance
@@ -2697,18 +2840,18 @@ echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{i
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
 rem Filter the results of data
-jq -r ".data.stateQuery.avatar.inventory.items|[.[].count]|add" output.json > _countAPPotion.txt 2>nul
+jq -r ".data.stateQuery.avatar.inventory.items|(if ([.[].count]|add) == null then 0 else ([.[].count]|add) end)" output.json > _countAPPotion.txt 2>nul
 set /p _countAPPotion=<_countAPPotion.txt
 set /a _countAPPotion=%_countAPPotion% 2>nul
 echo.==========
 echo Character	:	%_charCount%
 echo Name		:	%_name%
 echo Stage		:	%_stage%
-if %_countAPPotion% lss 0 (echo Have	:	%_countAPPotion% AP Potion
-color 4F & echo.└── Character does not have AP potion & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu
-) else (echo Have	:	[40;32m%_countAPPotion%[40;96m AP Potion)
+if %_countAPPotion% leq 0 (echo Have		:	%_countAPPotion% AP Potion
+color 4F & echo.└── Character does not have AP potion & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof
+) else (echo Have		:	[40;32m%_countAPPotion%[40;96m AP Potion)
 :tryAutoUseAPpotion1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 rem Check whether the previous transactions are successful or not
 echo ==========
 echo Step 0: Check previous use AP Potion transactions
@@ -2717,15 +2860,17 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=charge_action_point3^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
 echo Step 1: Get unsignedTransaction
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/useAPpotion --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get value exceeding 1024 characters
@@ -2734,7 +2879,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUseAPpotion2
 )
 :tryAutoUseAPpotion2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2749,19 +2894,18 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUseAPpotion3
 )
 :tryAutoUseAPpotion3
-if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
 echo.
 echo.[1] Continue to use 1 AP potion, automatic after 10s
-echo.[2] Back to the menu and turn off Auto
+echo.[2] Back to menu and turn off Auto
 choice /c 12 /n /t 10 /d 1 /m "Enter number from the keyboard: "
 if %errorlevel%==1 (goto :tryAutoUseAPpotion4)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryAutoUseAPpotion4
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find signTransaction ...
@@ -2776,15 +2920,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :tryAutoUseAPpotion5
 )
 :tryAutoUseAPpotion5
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Find stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Get stageTransaction successful
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoUseAPpotion
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2794,18 +2940,20 @@ if not %_canAuto%==5 echo ║ID %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║   
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
 echo Step 5: Check auto use 1 AP potion character: %_name%
+echo.─── Check %_countKtraStaging% time(s)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto use AP potion failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto use AP potion is taking place & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto use AP potion temporary failure & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto use AP potion successful & echo.─── back to the menu & timeout /t 20 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto use AP potion successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto use AP potion, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto :duLieuViCu)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
 goto:eof

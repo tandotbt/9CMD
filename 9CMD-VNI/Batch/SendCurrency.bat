@@ -252,7 +252,7 @@ echo [3] Quay lại Menu
 choice /c 123 /n /m "Nhập từ bàn phím...: "
 if %errorlevel% equ 1 (goto :KTraGiaoDich9csan)
 if %errorlevel% equ 2 (goto :KTraGiaoDichGraphQL)
-if %errorlevel% equ 3 (call %_cd%\batch\Menu.bat)
+if %errorlevel% equ 3 (goto :LichSu)
 :KTraGiaoDichGraphQL
 call %_cd%\batch\SendStep5.bat
 call :background
@@ -339,6 +339,6 @@ if defined var (set /a _ktra=0) else (set /a _ktra=1)
 if "%_ktra%" == "1" (goto :KTraSoLuong3) else (echo Lỗi 2: Số lượng không phải dạng số, thử lại... && color 4F && timeout 3 && goto :ChonLoaiTienTe)
 rem Kiểm tra có nhỏ hơn số dư hay không
 :KTraSoLuong3
-if %_currency% == NCG (if %_soLuong% geq %_ncgCuaA% (set /a _ktra=0))
-if %_currency% == CRYSTAL (if %_soLuong% geq %_crystalCuaA% (set /a _ktra=0))
+if %_currency% == NCG (if %_soLuong% gtr %_ncgCuaA% (set /a _ktra=0))
+if %_currency% == CRYSTAL (if %_soLuong% gtr %_crystalCuaA% (set /a _ktra=0))
 if "%_ktra%" == "1" (goto :SoLuongOK) else (echo Lỗi 3: Số lượng vượt quá số dư, thử lại... && color 4F && timeout 3 && goto :ChonLoaiTienTe)

@@ -4,6 +4,8 @@ color 0B
 rem Cài tiếng Việt Nam
 chcp 65001
 cls
+rem Cài %_cd% gốc
+set /p _cd=<_cd.txt
 set _stt=%1
 set _vi=**********************
 set _9cscanBlock=*******
@@ -15,8 +17,6 @@ set /p _node=<%_cd%\data\_node.txt
 set _node=%_node: =%
 :BatDau
 rem setlocal ENABLEDELAYEDEXPANSION
-rem Cài %_cd% gốc
-set /p _cd=<_cd.txt
 set _stt=%_stt%
 call :background
 rem Kiểm tra đã có thư mục ví chưa
@@ -65,8 +65,7 @@ rem Lấy số lượng nhân vật
 echo.└──── Lấy số lượng nhân vật ...
 jq "length" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json > %_cd%\user\trackedAvatar\%_folderVi%\_length.txt 2>nul
 set /p _length=<%_cd%\user\trackedAvatar\%_folderVi%\_length.txt
-if not %_length% geq 2 (if %_length% leq 4 (echo. & echo Lỗi 1: Ví nhập sai, chưa có nhân vật & echo.hoặc 9cscan lỗi, thử lại ... & color 4F & timeout 5 & goto :BatDau))
-set /a _length+=-1
+if not %_length% geq 1 (if not %_length% leq 3 (echo. & echo Lỗi 1: Ví nhập sai, chưa có nhân vật & echo.hoặc 9cscan lỗi, thử lại ... & color 4F & timeout 5 & goto :BatDau))
 rem Lấy mức stake để tìm số AP tiêu hao
 echo.└──── Lấy số AP tiêu hao theo mức Stake ...
 cd %_cd%\user\trackedAvatar\%_folderVi%
@@ -76,7 +75,7 @@ curl --header "Content-Type: application/json" --data "@input.json" --show-error
 echo 5 > _stakeAP.txt
 rem Lọc kết quả lấy dữ liệu
 findstr /i null output.json> nul
-if %errorlevel% == 1 ("%_cd%\batch\jq.exe" -r ".data.stateQuery.stakeStates|.[]|.deposit|tonumber|if . > 500000 then 3 elif . > 5000 then 4 else 5 end" output.json > _stakeAP.txt 2>nul)
+if %errorlevel% == 1 ("%_cd%\batch\jq.exe" -r ".data.stateQuery.stakeStates|.[]|.deposit|tonumber|if . >= 500000 then 3 elif . >= 5000 then 4 else 5 end" output.json > _stakeAP.txt 2>nul)
 set /p _stakeAP=<_stakeAP.txt & set /a _stakeAP=%_stakeAP% 2>nul
 rem Xóa file nháp input và output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\input.json 2>nul
@@ -105,7 +104,9 @@ echo.└──── Nhập dữ liệu nhân vật %_charCount% ...
 cd %_cd%\batch\avatarAddress
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%"
 if not exist %_folder% (md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%)
-jq ".[%_charCount%]|del(.refreshBlockIndex)|del(.avatarAddress)|del(.address)|del(.goldBalance)|.[]|{address, name, level, actionPoint,timeCount: (.dailyRewardReceivedIndex+1700-%_9cscanBlock%)}" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json 2>nul
+set "_temp="
+set /a _temp=%_charCount%-1
+jq ".[%_temp%]|del(.refreshBlockIndex)|del(.avatarAddress)|del(.address)|del(.goldBalance)|.[]|{address, name, level, actionPoint,timeCount: (.dailyRewardReceivedIndex+1700-%_9cscanBlock%)}" %_cd%\user\trackedAvatar\%_folderVi%\_allChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json 2>nul
 jq "{sec: ((.timeCount*12)%%60),minute: ((((.timeCount*12)-(.timeCount*12)%%60)/60)%%60),hours: (((((.timeCount*12)-(.timeCount*12)%%60)/60)-(((.timeCount*12)-(.timeCount*12)%%60)/60%%60))/60)}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.json 2>nul
 jq -j """\(.hours):\(.minute):\(.sec)""" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoCharAp.txt 2>nul
 jq -r ".address" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_infoChar.json> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt 2>nul
@@ -117,15 +118,23 @@ rem Lấy stage đang tới
 echo.└────── Lấy Stage đã mở ...
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _AddressChar=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_AddressChar%\"){stageMap{count}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_AddressChar%\"){actionPoint,dailyRewardReceivedIndex,level,stageMap{count}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 rem Lọc kết quả lấy dữ liệu
 "%_cd%\batch\jq.exe" -r "..|.count?|select(.)" output.json > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_stage.txt 2>nul
+echo.└────── Lấy AP và thời gian refill AP ...
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar.actionPoint" output.json > _actionPoint.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar|.dailyRewardReceivedIndex+1700-%_9cscanBlock%" output.json > _timeCount.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar|.dailyRewardReceivedIndex+1700-%_9cscanBlock%|{sec: ((.*12)%%60),minute: ((((.*12)-(.*12)%%60)/60)%%60),hours: (((((.*12)-(.*12)%%60)/60)-(((.*12)-(.*12)%%60)/60%%60))/60)}" output.json > _infoCharAp.json 2>nul
+"%_cd%\batch\jq.exe" -j """\(.hours):\(.minute):\(.sec)""" _infoCharAp.json> _infoCharAp.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".data.stateQuery.avatar.level" output.json> _level.txt 2>nul
 rem Xóa file nháp input và output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\input.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\output.json 2>nul
+set /a _stage=0
 set /p _stage=<_stage.txt
+if %_stage% == 0 (echo.Lỗi 1.1: Không tìm thấy stage đã mở & echo.nguyên nhân có thể do node đã chọn hỏng & echo.sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & color 4F & timeout 5 & goto :BatDau)
 rem Tạo file cần thiết
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt"
 if not exist %_file% (echo 0 > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt)
@@ -184,7 +193,7 @@ echo.└────── Tạo file html xem vật phẩm ...
 xcopy "%_cd%\data\CheckItem\" "%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem\" >nul
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem
-call "%_cd%\batch\TaoInputJson.bat" _IDapiJson %_urlJson% index-raw.html> index-raw2.html 2>nul
+echo $.getJSON("https://jsonblob.com/api/jsonBlob/%_urlJson%",> index-raw2.html 2>nul
 type index-raw1.html index-raw2.html index-raw3.html> index.html 2>nul
 del /q index-raw1.html index-raw2.html index-raw3.html index-raw.html
 :locChar2
@@ -205,54 +214,73 @@ if not exist %_file% (
 echo.└────── Tạo file 888888.json xem vật phẩm cho Repeat ...
 echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json
 )
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :locChar)
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :locChar)
 :displayVi
+echo.───── Hoàn thành!
+timeout 2 >nul
 call :background
 set _hdsdRepeat=0
 set _msgRefillAP=0
 rem Hiển thị thông tin
 set _charCount=1
 :displayChar
-call :background2 %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar)
+call :background2
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar)
 rem Thử auto Refill AP
 set _charCount=1
 :displayChar1
-call :tryRefillAP %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar1)
+call :tryRefillAP
+if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% lss %_stakeAP% (if %_autoRefillAP% == 1 (call :autoRefillAP & goto :duLieuViCu)))))
+if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (set _msgRefillAP=1))
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar1)
 rem Thử auto Sweep
 set _charCount=1
 :displayChar2
-call :tryAutoSweep %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar2)
+call :tryAutoSweep
+set "_temp="
+set _temp=%_howManyTurn%
+if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
+set /a _howManyAP=%_stakeAP%*%_temp%
+if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoSweep & goto :duLieuViCu)))))
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar2)
 rem Thử auto Repeat
 set _charCount=1
 :displayChar3
-call :tryAutoRepeat %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar3)
+call :tryAutoRepeat
+set "_temp="
+set _temp=%_howManyTurn%
+if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
+set /a _howManyAP=%_stakeAP%*%_temp%
+if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_autoUseAPPotionOnOff% == 1 (if %_actionPoint% lss %_stakeAP% (call :tryAutoUseAPpotion & goto :duLieuViCu)))))
+if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoRepeat & goto :duLieuViCu)))))
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar3)
 if %_hdsdRepeat% == 1 (echo [40;95mKiểu Repeat[40;96m / [40;94mAuto Open World [40;93mAuto AP potion [40;92mRepert x turn[40;96m) else (echo.)
 echo.[40;96m==========
 if %_msgRefillAP% == 0 (goto :displayChar6)
+set /a _tempCountDisplay=0
 :msgDisplayChar
+set /a _tempCountDisplay+=1
 rem Hiển thị thông tin
 set _charCount=1
 :displayChar4
 call :background
 :displayChar5
-call :background2 %_charCount%
-if not "%_charCount%"=="%_length%" (set /a _charCount+=1 & goto :displayChar5)
+call :background2
+if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar5)
 timeout 1 >nul
+%_cd%\data\flashError.exe
 color 6F
-choice /c 12 /n /t 1 /d 1 /m "└── Có thể refill AP, nhấn [2] để thoát ..."
+if %_tempCountDisplay% gtr 20 (goto :duLieuViCu)
+choice /c 12 /n /t 1 /d 1 /m "└── Có thể refill AP, nhấn [2] để tắt auto ..."
 if %errorlevel%==1 (goto :msgDisplayChar)
 if %errorlevel%==2 (set _canAutoOnOff=0 & echo.└── Đang cập nhật ... & goto :duLieuViCu)
 :displayChar6
 if %_canAutoOnOff% == 1 (
-	echo.[1] Cập nhật lại, tự động sau 60s	[40;92m╔═══════════════╗[40;96m
+	echo.[1] Cập nhật lại, tự động sau 60s	[40;92m╔═ [%_autoRefillAP%] [%_autoSweepOnOffAll%] [%_autoRepeatOnOffAll%] ═╗[40;96m
 	echo.[2] Cài đặt Auto			[40;92m║4.Tắt Auto tổng║[40;96m
 	echo.[3] Hướng dẫn sử dụng			[40;92m╚═══════════════╝[40;96m
 	) else (
-		echo.[1] Cập nhật lại, tự động sau 60s	[40;97m╔═══════════════╗[40;96m
+		echo.[1] Cập nhật lại, tự động sau 60s	[40;97m╔═ [%_autoRefillAP%] [%_autoSweepOnOffAll%] [%_autoRepeatOnOffAll%] ═╗[40;96m
 		echo.[2] Cài đặt Auto			[40;97m║4.Bật Auto tổng║[40;96m
 		echo.[3] Hướng dẫn sử dụng			[40;97m╚═══════════════╝[40;96m
 		)
@@ -275,13 +303,12 @@ if not %_canAuto%==5 echo ║Ví %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║  
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 exit /b
 :background2
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_autoSweepRepeatOnOffChar% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_autoSweepRepeatOnOffChar% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2Background2)
@@ -329,23 +356,18 @@ if %_timeCount% lss 0 (
 		echo.║Refill	:%_infoCharAp:~-20%	%_SweepOrRepeatNow%║
 		echo.╚═══════════════════════════════════════════════════════╝
 		)
-exit /b
+goto:eof
 :tryRefillAP
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
-rem Tự động refill AP
-if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (if %_canAuto% == 5 (if %_actionPoint% lss %_stakeAP% (if %_autoRefillAP% == 1 (call :autoRefillAP)))))
-if %_canAutoOnOff% == 1 (if %_timeCount% lss 0 (set _msgRefillAP=1))
-exit /b
+goto:eof
 :tryAutoSweep
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
 if not %_autoSweepRepeatOnOffChar% == 1 (exit /b)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2tryAutoSweep)
@@ -370,22 +392,15 @@ set /p _repeatXturn=<%cd%\module\_repeatXturn.txt
 set /a _autoOpenMapOnOff=%_autoOpenMapOnOff% 2>nul
 set /a _autoUseAPPotionOnOff=%_autoUseAPPotionOnOff% 2>nul
 set /a _repeatXturn=%_repeatXturn% 2>nul
-rem Tự động sweep
-set "_temp="
-set _temp=%_howManyTurn%
-if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
-set /a _howManyAP=%_stakeAP%*%_temp%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% gtr %_stakeAP% (call :autoSweep)))))
-exit /b
+goto:eof
 :tryAutoRepeat
-set /a _charDisplay=%1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
 if not %_autoSweepRepeatOnOffChar% == 2 (exit /b)
 set _hdsdRepeat=1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2tryAutoRepeat)
@@ -410,26 +425,18 @@ set /p _repeatXturn=<%cd%\module\_repeatXturn.txt
 set /a _autoOpenMapOnOff=%_autoOpenMapOnOff% 2>nul
 set /a _autoUseAPPotionOnOff=%_autoUseAPPotionOnOff% 2>nul
 set /a _repeatXturn=%_repeatXturn% 2>nul
-rem Tự động repeat
-set "_temp="
-set _temp=%_howManyTurn%
-if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
-set /a _howManyAP=%_stakeAP%*%_temp%
-if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_autoUseAPPotionOnOff% == 1 (if %_actionPoint% lss %_stakeAP% (call :tryAutoUseAPpotion)))))
-if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% gtr %_stakeAP% (call :autoRepeat)))))
-exit /b
+goto:eof
 :background3
 call :background
-set /a _charDisplay=%1
 rem Ktra có nhân vật hay không
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%"
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%"
 if not exist %_folder% (goto :settingAuto)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 set /p _autoSweepRepeatOnOffChar=<_autoSweepRepeatOnOffChar.txt
 set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 set /p _stageSweepOrRepeat=<_stage.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
 if %_stageSweepOrRepeat% == 0 (goto :continue2Background3)
@@ -446,9 +453,9 @@ for /f "usebackq %skip% delims=" %%a in (%INPUT_FILE%) do set "randline=%%a" & g
 rem echo Line #%randnum% is:
 echo/%randline% > _stage.txt
 :continue2Background3
-set /p _stageSweepOrRepeat=<_stage.txt & set /p _autoSweepRepeatOnOffChar=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\_autoSweepRepeatOnOffChar.txt & set /p _howManyTurn=<_howManyTurn.txt 
+set /p _stageSweepOrRepeat=<_stage.txt & set /p _autoSweepRepeatOnOffChar=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt & set /p _howManyTurn=<_howManyTurn.txt 
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul & set /a _autoSweepRepeatOnOffChar=%_autoSweepRepeatOnOffChar% 2>nul & set /a _howManyTurn=%_howManyTurn% 2>nul
-echo.Nhân vật %_charDisplay%	[40;33mSweep on[40;96m	[40;35mRepeat on[40;96m
+echo.Nhân vật %_charCount%	[40;33mSweep on[40;96m	[40;35mRepeat on[40;96m
 set /p _typeRepeat=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\_typeRepeat.txt
 set _typeRepeat=%_typeRepeat: =%
 set _name=                    %_name%
@@ -488,13 +495,13 @@ if %_temp% == 1 (
 					echo.╚═══════════════════════════════════════════════════════╝[40;96m
 				)
 			)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%		
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%		
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt		
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 set /p _stageSweepOrRepeat=<_stage.txt
 set /a _stageSweepOrRepeat=%_stageSweepOrRepeat% 2>nul
-exit /b
+goto:eof
 :settingAuto
 if %_chuyendoi% == 0 (goto :gotoRefillAP)
 if %_chuyendoi% == 1 (goto :gotoSweep)
@@ -517,7 +524,9 @@ echo.==========
 echo.[40;97mMenu Auto Refill AP[40;96m
 echo.[1..5] Nhập đủ mới có thể Auto
 echo.==========
-echo.[6, 7] Quay lại
+echo.[6] Module Auto Craft
+echo.==========
+echo.[7] Quay lại
 echo.[8] Bật / Tắt Auto Refill AP tổng
 echo.[9] Chuyển sang cài đặt Auto Sweep
 choice /c 123456789 /n /m "Nhập số từ bàn phím: "
@@ -526,7 +535,7 @@ if %errorlevel% equ 2 (goto :password)
 if %errorlevel% equ 3 (goto :publickey)
 if %errorlevel% equ 4 (goto :KeyID)
 if %errorlevel% equ 5 (goto :utcFile)
-if %errorlevel% equ 6 (goto :displayVi)
+if %errorlevel% equ 6 (goto :modulePlus)
 if %errorlevel% equ 7 (goto :displayVi)
 if %errorlevel% equ 8 (goto :autoRefillAPOnOff)
 if %errorlevel% equ 9 (goto :gotoSweep)
@@ -536,7 +545,7 @@ set /a _chuyendoi=1
 set /a _charCount=1
 :gotoSweep1
 mode con:cols=60 lines=35
-call :background3 %_charCount%
+call :background3
 set "_temp="
 set /a _temp=%_actionPoint%/%_stakeAP%
 set _temp=  %_temp%
@@ -583,7 +592,7 @@ set /a _chuyendoi=2
 set /a _charCount=1
 :gotoClimbingChilling1
 mode con:cols=60 lines=35
-call :background3 %_charCount%
+call :background3
 set "_temp="
 set /a _temp=%_actionPoint%/%_stakeAP%
 set "_temp1="
@@ -623,6 +632,20 @@ if %errorlevel% equ 6 (mode con:cols=60 lines=25 & goto :moduleRepeat)
 if %errorlevel% equ 7 (mode con:cols=60 lines=25 & goto :displayVi)
 if %errorlevel% equ 8 (mode con:cols=60 lines=25 & goto :autoRepeatOnOffAll)
 if %errorlevel% equ 9 (mode con:cols=60 lines=25 & goto :gotoRefillAP)
+goto :settingAuto
+:modulePlus
+echo.Module Plus cho ví số %_stt%
+echo.Đang dùng node %_node%
+echo.
+echo.[1] Auto craft / upgrade trang bị
+rem choice /c 12 /n /m "Nhập số từ bàn phím: "
+rem if %errorlevel% == 1 (set /a _temp1=1)
+rem if %errorlevel% == 2 (set /a _temp1=1)
+choice /c 123 /m "Chọn nhân vật có số thự tự: "
+set _temp2=%errorlevel%
+set _folder="%_cd%\User\trackedAvatar\%_folderVi%\char%_temp2%"
+if not exist %_folder% (echo.Không tìm thấy thư mục lưu dữ liệu của nhân vật %_temp2% & timeout 3 >nul & goto :modulePlus)
+start %_cd%\batch\avatarAddress\autoCraft.bat %_stt% %_temp2%
 goto :settingAuto
 :importTrangBiType
 call :background
@@ -730,7 +753,7 @@ echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{i
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
 rem Lọc kết quả lấy dữ liệu
-%_cd%\batch\jq.exe -r ".data.stateQuery.avatar.inventory.items|[.[].count]|add" output.json > _countAPPotion.txt 2>nul
+%_cd%\batch\jq.exe -r ".data.stateQuery.avatar.inventory.items|(if ([.[].count]|add) == null then 0 else ([.[].count]|add) end)" output.json > _countAPPotion.txt 2>nul
 set /p _countAPPotion=<_countAPPotion.txt
 set /a _countAPPotion=%_countAPPotion% 2>nul
 del /q input.json output.json _countAPPotion.txt
@@ -738,7 +761,7 @@ echo.==========
 echo Nhân vật	:	%_charCount%
 echo Tên		:	%_name%
 echo Stage		:	%_stage%
-if %_countAPPotion% lss 0 (echo Có	:	[40;91m%_countAPPotion%[40;96m AP Potion) else (echo Có	:	[40;32m%_countAPPotion%[40;96m AP Potion)
+if %_countAPPotion% leq 0 (echo Có		:	[40;91m%_countAPPotion%[40;96m AP Potion) else (echo Có		:	[40;32m%_countAPPotion%[40;96m AP Potion)
 echo [1] Bật / Tắt auto sử dụng AP potion
 echo [2] Quay lại
 choice /c 12 /n /m "Nhập số từ bàn phím: "
@@ -810,14 +833,14 @@ if %_stageSweepOrRepeat% == 0 (echo 1 > _stage.txt) else (echo 0 > _stage.txt)
 goto :gotoClimbingChilling1)
 :charRepeatOnOff
 if not %_autoSweepRepeatOnOffChar% == 2 (set /a _autoSweepRepeatOnOffChar=2) else (set /a _autoSweepRepeatOnOffChar=0)
-echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\_autoSweepRepeatOnOffChar.txt
+echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt
 goto :gotoClimbingChilling1
 :charSweepOnOff
 if not %_autoSweepRepeatOnOffChar% == 1 (set /a _autoSweepRepeatOnOffChar=1) else (set /a _autoSweepRepeatOnOffChar=0)
-echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\_autoSweepRepeatOnOffChar.txt
+echo %_autoSweepRepeatOnOffChar% > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt
 goto :gotoSweep1
 :howManyTurn
-call :background3 %_charCount%
+call :background3
 echo.[40;96m==========
 set /a _maxTurn=120/%_stakeAP%
 set _maxTurn=  %_maxTurn%
@@ -842,15 +865,15 @@ set "var="&for /f "delims=0123456789" %%i in ("%_pickHowManyTurn%") do set var=%
 if defined var (echo Lỗi 2: Sai cú pháp, thử lại ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
 rem Ktra turn có lớn hơn max turn hay không
 if %_pickHowManyTurn% gtr %_maxTurn% (echo Lỗi 3: %_pickHowManyTurn% lớn hơn %_maxTurn% turn, thử lại ... & color 4F & timeout 5 & set "_pickHowManyTurn=" & goto :howManyTurn)
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 echo %_pickHowManyTurn% > _howManyTurn.txt
 if %_chuyendoi% == 1 (goto :gotoSweep1)
 if %_chuyendoi% == 2 (goto :gotoClimbingChilling1)
 :pickStage
-call :background3 %_charCount%
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+call :background3
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 echo.[40;96m==========
 echo.
 echo.Những stage đang lưu:
@@ -874,16 +897,16 @@ set "_temp="
 set /a _temp=%_stage%+1
 if %_chuyendoi% == 1 (if %_pickStage% gtr %_stage% (echo Lỗi 3: Stage %_pickStage% lớn hơn stage được phép sweep, thử lại ... & color 4F & timeout 5 & set "_pickStage=" & goto :pickStage))
 if %_chuyendoi% == 2 (if %_pickStage% gtr %_temp% (echo Lỗi 3: Stage %_pickStage% lớn hơn stage được phép repeat, thử lại ... & color 4F & timeout 5 & set "_pickStage=" & goto :pickStage))
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 echo %_pickStage% >> _stageRandom.txt
 :pickStage1
-call :background3 %_charCount%
+call :background3
 echo.[40;96m==========
 echo.
 echo.Những stage đang lưu:
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep
-if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat)
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+if %_chuyendoi% == 2 (cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat)
 type _stageRandom.txt
 echo.==========
 echo.
@@ -989,12 +1012,15 @@ echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{e
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Lọc kết quả lấy dữ liệu
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED.txt output1.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED.txt output1.json> output2.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req,picked: 1}]" output4.json> output.json 2>nul
 rem Đẩy file output.json lên https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Lọc lấy trang bị đang Equipped
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED2.txt output.json> _temp.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED2.txt output2.json> _temp.json 2>nul
 if %_chuyendoi% == 1 (
 	copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_itemEquip.json>nul
 	goto :importTrangBiEquippedEnd
@@ -1015,10 +1041,7 @@ if %_chuyendoi% == 2 (
 )
 :importTrangBiEquippedEnd
 rem Xóa file nháp input và output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output.json 2>nul
-del /q _temp.json 2>nul
+del /q _temp.json input.json output.json output1.json output2.json output3.json output4.json 2>nul
 echo.└──── Lấy trang bị Equipped thành công ...
 timeout 3 >nul
 goto :importTrangBi
@@ -1054,17 +1077,20 @@ rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_weapon%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_weapon%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Đẩy file output.json lên https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Xóa file nháp input và output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiWeapon1
-call :background3 %_charCount%
+echo.└── Lấy block hiện tại ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Weapon
 echo.==========
@@ -1081,6 +1107,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _weapon="Nhập ID Item của trang bị: "
 	set _weapon=!_weapon: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_weapon!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Lỗi 1: Trang bị này có thể đang được craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiWeapon1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon: \"!_weapon!\",armor,belt,necklace,ring1,ring2}" _itemEquip.json> _temp.json
@@ -1144,17 +1179,20 @@ rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterARMOR.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_armor%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_armor%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Đẩy file output.json lên https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Xóa file nháp input và output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiArmor1
-call :background3 %_charCount%
+echo.└── Lấy block hiện tại ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Armor
 echo.==========
@@ -1171,6 +1209,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _armor="Nhập ID Item của trang bị: "
 	set _armor=!_armor: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_armor!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Lỗi 1: Trang bị này có thể đang được craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiArmor1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon,armor: \"!_armor!\",belt,necklace,ring1,ring2}" _itemEquip.json> _temp.json 2>nul
@@ -1232,19 +1279,21 @@ set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
-rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_belt%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_belt%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Đẩy file output.json lên https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Xóa file nháp input và output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiBelt1
-call :background3 %_charCount%
+echo.└── Lấy block hiện tại ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Belt
 echo.==========
@@ -1261,6 +1310,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _belt="Nhập ID Item của trang bị: "
 	set _belt=!_belt: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_belt!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Lỗi 1: Trang bị này có thể đang được craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiBelt1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon,armor,belt: \"!_belt!\",necklace,ring1,ring2}" _itemEquip.json> _temp.json 2>nul
@@ -1324,17 +1382,20 @@ rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterNECKLACE.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_necklace%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_necklace%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Đẩy file output.json lên https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Xóa file nháp input và output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiNecklace1
-call :background3 %_charCount%
+echo.└── Lấy block hiện tại ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Necklace
 echo.==========
@@ -1351,6 +1412,15 @@ if %errorlevel% equ 1 (
 	echo.
 	set /p _necklace="Nhập ID Item của trang bị: "
 	set _necklace=!_necklace: =!
+	%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_necklace!>nul
+	if !errorlevel! == 0 (
+		echo.
+		echo Lỗi 1: Trang bị này có thể đang được craft / upgrade ...
+		color 4F
+		endlocal
+		timeout 5
+		goto :importTrangBiNecklace1
+		)
 	if %_chuyendoi% == 1 (
 		cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\
 		%_cd%\batch\jq.exe "{weapon,armor,belt,necklace: \"!_necklace!\",ring1,ring2}" _itemEquip.json> _temp.json 2>nul
@@ -1418,17 +1488,20 @@ rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Đẩy file output.json lên https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Xóa file nháp input và output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing11
-call :background3 %_charCount%
+echo.└── Lấy block hiện tại ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Ring1
 echo.==========
@@ -1446,6 +1519,15 @@ set "_ring1= "
 echo.
 set /p _ring1="Nhập ID Item của trang bị: "
 set _ring1=!_ring1: =!
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_ring1!>nul
+if !errorlevel! == 0 (
+	echo.
+	echo Lỗi 1: Trang bị này có thể đang được craft / upgrade ...
+	color 4F
+	endlocal
+	timeout 5
+	goto :importTrangBiRing12
+	)
 if "!_ring1!" equ "!_ring2!" (
 	if not "!_ring1!" equ "" (
 		echo.
@@ -1521,17 +1603,20 @@ rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output1.json> output2.json 2>nul
-%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output2.json> output.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -s "[.[]|{image: .[0].image,level: .[0].level,elementalType: .[0].elementalType,itemId: .[0].itemId,index: .[0].index,skills: .[0].skills,grade: .[0].grade,equipped: .[0].equipped,stat: .[0].stat,CP: .[0].CP,elementalTypeId: .[0].elementalTypeId,id: .[0].id,name: .[1].name,unlock_stage: .[1].unlock_stage,level_req: .[1].level_req}]" output4.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r "[.[]|{image,level,elementalType,itemId,index,skills,grade,equipped,stat,name,unlock_stage,level_req,CP,picked: (if .itemId == \"%_ring1%\" then 1 elif .itemId == \"%_ring2%\" then 1 else 0 end)}]" output5.json> output.json 2>nul
 rem Đẩy file output.json lên https://jsonblob.com
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke >nul 2>nul
 rem Xóa file nháp input và output
-del /q input.json 2>nul
-del /q output1.json 2>nul
-del /q output2.json 2>nul
-del /q output.json 2>nul
+del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing21
-call :background3 %_charCount%
+echo.└── Lấy block hiện tại ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Ring2
 echo.==========
@@ -1549,6 +1634,15 @@ set "_ring2= "
 echo.
 set /p _ring2="Nhập ID Item của trang bị: "
 set _ring2=!_ring2: =!
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\_infoSlot.json 2>nul| findstr /i !_ring2!>nul
+if !errorlevel! == 0 (
+	echo.
+	echo Lỗi 1: Trang bị này có thể đang được craft / upgrade ...
+	color 4F
+	endlocal
+	timeout 5
+	goto :importTrangBiRing12
+	)
 if "!_ring2!" equ "%_ring1%" (
 	if not "!_ring2!" equ "" (
 		echo.
@@ -1756,10 +1850,9 @@ curl --ssl-no-revoke --header "Content-Type: application/json" https://api.9csca
 :9cscanPublicKey2
 rem Lọc kết quả lấy dữ liệu
 echo.└── Tìm publicKey của ví %_vi:~0,7%*** ...
-call :ReadJsonbat publicKey
-copy %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json %_cd%\user\trackedAvatar\%_folderVi%\auto\publickey\_publickey.txt> nul
+"%_cd%\batch\jq" -r "..|.publicKey?|select(.)" %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json> %_cd%\user\trackedAvatar\%_folderVi%\auto\publickey\_publickey.txt 2>nul
 set /p _publickey=<%_cd%\user\trackedAvatar\%_folderVi%\auto\publickey\_publickey.txt
-del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json
+del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json
 echo.└──── Lấy Public Key của ví %_vi:~0,7%*** thành công
 echo.
 set /a _publickeyOK=1
@@ -1907,7 +2000,7 @@ del /q _vi.json & del /q _viLowcase.txt
 curl --ssl-no-revoke --header "Content-Type: application/json" https://api.tanvpn.tk/donater?vi=%_viLowcase%> _KtraDonater.json 2>nul
 findstr /i %_viLowcase% _KtraDonater.json>nul
 if %errorlevel%==1 (set /a _HanSuDung=0 & goto :premium1)
-"%_cd%\batch\jq.exe" -r ".[].block" _KtraDonater.json> _HanSuDung.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".[].block-%_9cscanBlock%" _KtraDonater.json> _HanSuDung.txt 2>nul
 set /p _HanSuDung=<_HanSuDung.txt & del /q _HanSuDung.txt & del /q _KtraDonater.json
 set /a _premiumTXOK=1
 :premium1
@@ -1971,7 +2064,7 @@ del /q _vi.json & del /q _viLowcase.txt
 curl --ssl-no-revoke --header "Content-Type: application/json" https://api.tanvpn.tk/donater?vi=%_viLowcase%> _KtraDonater.json 2>nul
 findstr /i %_viLowcase% _KtraDonater.json>nul
 if %errorlevel%==1 (echo. & echo Lỗi 1: Bạn chưa là Donater, thử lại ... & del /q _KtraDonater.json & color 4F & timeout 5 & goto :premium)
-"%_cd%\batch\jq.exe" -r ".[].block" _KtraDonater.json> _HanSuDung.txt 2>nul
+"%_cd%\batch\jq.exe" -r ".[].block-%_9cscanBlock%" _KtraDonater.json> _HanSuDung.txt 2>nul
 set /p _HanSuDung=<_HanSuDung.txt & del /q _HanSuDung.txt & del /q _KtraDonater.json
 set /a _premiumTXOK=1
 goto :settingAuto
@@ -1981,17 +2074,13 @@ if %_NCGbuyi%==8 echo %*> _NCGticker.txt 2>nul
 if %_NCGbuyi%==10 echo %*> _NCGbuy.txt 2>nul & set /p _NCGbuy=<_NCGbuy.txt & set /a _NCGbuy=%_NCGbuy:~0,-2% & del /q _NCGbuy.txt
 set /a _NCGbuyi+=1
 exit /b
-:ReadJsonbat
-"%_cd%\batch\jq" -r "..|.%1?|select(.)" %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json> %_cd%\user\trackedAvatar\%_folderVi%\auto\ReadJsonbat.json 2>nul
-del /q %_cd%\user\trackedAvatar\%_folderVi%\auto\output.json
-exit /b
 :autoRefillAP
 echo.└── Đang Refill AP nhân vật: %_name% ...
 rem Tạo thư mục lưu dữ liệu
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRefillAP
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRefillAP
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 echo off
 echo ==========
@@ -2002,18 +2091,20 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
 rem Gửi thông tin của bạn tới server của tôi
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/refillAP --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul & set /p _kqua=<_kqua.txt
-if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2025,7 +2116,7 @@ goto :KTraSignature1
 :KTraSignature1
 set "_signature="
 set /p _signature=<_signature.txt
-if [%_signature%] == [] (echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng,... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng,... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận Signature thành công
 echo ==========
 echo Bước 3: Nhận signTransaction
@@ -2034,10 +2125,9 @@ echo.[1] Tiếp tục refill AP, tự động sau 10s
 echo.[2] Quay lại menu và tắt auto
 choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :tieptucAutoRefillAP)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoRefillAP
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm signTransaction ...
@@ -2047,15 +2137,17 @@ echo ==========
 echo Bước 4: Nhận stageTransaction
 echo.
 set /p _signTransaction=<_signTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoRefillAP
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2065,30 +2157,32 @@ if not %_canAuto%==5 echo ║Ví %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║  
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
 echo Bước 5: Kiểm tra auto Refill AP nhân vật: %_name%
+echo.─── Kiểm tra lần %_countKtraStaging%
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Refill AP thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Refill AP đang diễn ra & echo.─── kiểm tra lại sau 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP thất bại & echo.─── đợi 10p sau thử lại auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP thất bại & echo.─── đợi 10p sau thử lại auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Refill AP tạm thời thất bại & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP thất bại & echo.─── đợi 10p sau thử lại auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP thất bại & echo.─── đợi 10p sau thử lại auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto Refill AP, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
-goto :duLieuViCu
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+goto:eof
 :autoSweep
 echo.└── Đang Auto Sweep nhân vật: %_name% ...
 rem Tạo thư mục lưu dữ liệu
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoSweep
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoSweep
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
-jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingSweep\_itemEquip.json> _itemIDList.json 2>nul
+jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_itemEquip.json> _itemIDList.json 2>nul
 set /p _itemIDList=<_itemIDList.json
 echo off
 rem Kiểm tra những giao dịch trước có thành công hay không
@@ -2099,7 +2193,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep8^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
@@ -2115,10 +2209,12 @@ if %_temp% leq 250 (if %_temp% geq 201 (echo 5 > _world.txt 2>nul))
 if %_temp% leq 300 (if %_temp% geq 251 (echo 6 > _world.txt 2>nul))
 if %_temp% leq 350 (if %_temp% geq 301 (echo 7 > _world.txt 2>nul))
 set /p _world=<_world.txt
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%","world": "%_world%","stageSweep": "%_temp%","howManyAP": "%_howManyAP%","itemIDList": %_itemIDList%}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%","world": "%_world%","stageSweep": "%_temp%","howManyAP": "%_howManyAP%","itemIDList": %_itemIDList%}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/autoSweep --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Nhận giá trị vượt quá 1024 kí tự
@@ -2127,7 +2223,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep1
 )
 :autoSweep1
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2144,7 +2240,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep2
 )
 :autoSweep2
-if [%_signature%] == [] (echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận Signature thành công
 echo ==========
 echo Bước 3: Nhận signTransaction
@@ -2153,10 +2249,9 @@ echo.[1] Tiếp tục sweep, tự động sau 10s
 echo.[2] Quay lại menu và tắt auto
 choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :tieptucAutoSweep)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoSweep
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm signTransaction ...
@@ -2171,15 +2266,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :autoSweep3
 )
 :autoSweep3
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoSweep
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2189,28 +2286,30 @@ if not %_canAuto%==5 echo ║Ví %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║  
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
 echo Bước 5: Kiểm tra auto Sweep nhân vật: %_name%
+echo.─── Kiểm tra lần %_countKtraStaging%
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Sweep thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Sweep đang diễn ra & echo.─── kiểm tra lại sau 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep thất bại & echo.─── đợi 10p sau thử lại auto Sweep, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep thất bại & echo.─── đợi 10p sau thử lại auto Sweep, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Sweep tạm thời thất bại & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep thất bại & echo.─── đợi 10p sau thử lại auto Sweep, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep thất bại & echo.─── đợi 10p sau thử lại auto Sweep, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto Sweep, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
-goto :duLieuViCu
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto Sweep, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+goto:eof
 :autoRepeat
 echo.└── Đang Auto Repeat nhân vật: %_name% ...
 rem Tạo thư mục lưu dữ liệu
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 rem chọn Kiểu repeat
 echo.Đang chọn [40;95mkiểu %_typeRepeat%[40;96m
@@ -2227,25 +2326,28 @@ if %_typeRepeat% == 2 (goto :autoRepeat2)
 if %_typeRepeat% == 3 (goto :autoRepeat3)
 echo Level nhân vật	:	%_level%
 echo Đã chọn bộ đồ	:	0.json
-jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\0.json> _itemIDList.json 2>nul
+jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\0.json> _itemIDList.json 2>nul
 goto :autoRepeat4
 :autoRepeat2
 setlocal enabledelayedexpansion
 set max=0
 rem Lấy bộ trang bị lớn nhất theo level
-for %%x in (%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\*.json) do (
+for %%x in (%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\*.json) do (
   set "FileEquipType2=%%~nx"
   if !FileEquipType2! gtr !max! (if !FileEquipType2! leq !_level! (set max=!FileEquipType2!))
 )
 echo Level nhân vật	:	%_level%
 echo Đã chọn bộ đồ	:	%max%.json
-jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\%max%.json> _itemIDList.json 2>nul
+jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\%max%.json> _itemIDList.json 2>nul
 endlocal
 goto :autoRepeat4
 :autoRepeat3
 echo Level nhân vật	:	%_level%
 echo Đã chọn bộ đồ	:	888888.json
-echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json
+echo.└── Lấy block hiện tại ...
+curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
+del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json
 echo.└── Đang lấy dữ liệu trang bị ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
@@ -2253,7 +2355,11 @@ rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 rem Lọc kết quả lấy dữ liệu
 echo.───── Đang chọn Weapon ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output.json> output1.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output.json> output11.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output11.json> output12.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output13.json 2>nul
+type output12.json output13.json> output14.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output14.json> output1.json 2>nul
 if %_level% leq 19 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output1.json > _weapon.txt 2>nul)
 if %_level% leq 39 (if %_level% geq 20 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output1.json > _weapon.txt 2>nul))
 if %_level% leq 49 (if %_level% geq 40 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output1.json > _weapon.txt 2>nul))
@@ -2275,12 +2381,17 @@ set "_weapon= "
 set _file=_weapon.txt
 if exist %_file% (set /p _weapon=<_weapon.txt)
 set _weapon=%_weapon: =%
-%_cd%\batch\jq.exe "{weapon: \"%_weapon%\",armor,belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Đã chọn %_weapon%
+%_cd%\batch\jq.exe "{weapon: \"%_weapon%\",armor,belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
 
 echo.───── Đang chọn Armor ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterARMOR.txt output.json> output2.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterARMOR.txt output.json> output21.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output21.json> output22.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output23.json 2>nul
+type output22.json output23.json> output24.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output24.json> output2.json 2>nul
 if %_level% leq 29 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output2.json > _armor.txt 2>nul)
 if %_level% leq 49 (if %_level% geq 30 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output2.json > _armor.txt 2>nul))
 if %_level% leq 59 (if %_level% geq 50 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output2.json > _armor.txt 2>nul))
@@ -2302,12 +2413,17 @@ set "_armor= "
 set _file=_armor.txt
 if exist %_file% (set /p _armor=<_armor.txt)
 set _armor=%_armor: =%
-%_cd%\batch\jq.exe "{weapon,armor: \"%_armor%\",belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Đã chọn %_armor%
+%_cd%\batch\jq.exe "{weapon,armor: \"%_armor%\",belt,necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
 
 echo.───── Đang chọn Belt ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output.json> output3.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output.json> output31.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output31.json> output32.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output33.json 2>nul
+type output32.json output33.json> output34.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output34.json> output3.json 2>nul
 if %_level% leq 29 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output3.json > _belt.txt 2>nul)
 if %_level% leq 59 (if %_level% geq 30 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output3.json > _belt.txt 2>nul))
 if %_level% leq 79 (if %_level% geq 60 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output3.json > _belt.txt 2>nul))
@@ -2329,12 +2445,17 @@ set "_belt= "
 set _file=_belt.txt
 if exist %_file% (set /p _belt=<_belt.txt)
 set _belt=%_belt: =%
-%_cd%\batch\jq.exe "{weapon,armor,belt: \"%_belt%\",necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Đã chọn %_belt%
+%_cd%\batch\jq.exe "{weapon,armor,belt: \"%_belt%\",necklace,ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
 
 echo.───── Đang chọn Necklace ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterNECKLACE.txt output.json> output4.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterNECKLACE.txt output.json> output41.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output41.json> output42.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output43.json 2>nul
+type output42.json output43.json> output44.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output44.json> output4.json 2>nul
 if %_level% leq 39 (if %_level% geq 10 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output4.json > _necklace.txt 2>nul))
 if %_level% leq 69 (if %_level% geq 40 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output4.json > _necklace.txt 2>nul))
 if %_level% leq 89 (if %_level% geq 70 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|max_by(.CP).itemId|select(.)" output4.json > _necklace.txt 2>nul))
@@ -2354,12 +2475,17 @@ set "_necklace= "
 set _file=_necklace.txt
 if exist %_file% (set /p _necklace=<_necklace.txt)
 set _necklace=%_necklace: =%
-%_cd%\batch\jq.exe "{weapon,armor,belt,necklace: \"%_necklace%\",ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Đã chọn %_necklace%
+%_cd%\batch\jq.exe "{weapon,armor,belt,necklace: \"%_necklace%\",ring1,ring2}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
 
 echo.───── Đang chọn Ring1 và Ring2 ...
-%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output.json> output5.json 2>nul
+%_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output.json> output51.json 2>nul
+%_cd%\batch\jq.exe -r ".[]" output51.json> output52.json 2>nul
+%_cd%\batch\jq.exe -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output53.json 2>nul
+type output52.json output53.json> output54.json 2>nul
+%_cd%\batch\jq.exe -s "[group_by(.itemId)|.[]|select(length == 1)|.[]|select(length > 1)]" output54.json> output5.json 2>nul
 if %_level% leq 39 (if %_level% geq 13 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
 if %_level% leq 79 (if %_level% geq 40 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 2)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
 if %_level% leq 109 (if %_level% geq 80 (jq -r "[.[]|(select(.grade == 1)|select(.elementalTypeId <= 3)),(select(.grade == 2)|select(.elementalTypeId <= 2))]|sort_by(.CP)|reverse|.[0].itemId|select(.)" output5.json > _ring1.txt 2>nul))
@@ -2396,19 +2522,21 @@ set _file=_ring2.txt
 if exist %_file% (set /p _ring2=<_ring2.txt)
 set _ring1=%_ring1: =%
 set _ring2=%_ring2: =%
-%_cd%\batch\jq.exe "{weapon,armor,belt,necklace,ring1: \"%_ring1%\",ring2: \"%_ring2%\"}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _temp.json
-copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json>nul
+echo.─────── Đã chọn %_ring1%
+echo.─────── Đã chọn %_ring2%
+%_cd%\batch\jq.exe "{weapon,armor,belt,necklace,ring1: \"%_ring1%\",ring2: \"%_ring2%\"}" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _temp.json
+copy _temp.json %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json>nul
 del /q _temp.json 2>nul
 set /a _temp=%_stageSweepOrRepeat%
 if %_stageSweepOrRepeat% == 0 (set /a _temp=%_stage%+1 2>nul)
 echo.==========
 echo.[1] Tiếp tục
-echo.[2] Xem bộ trang bị đã chọn với [40;97mStage %_temp%, level %_level%[40;96m
-choice /c 12 /n /t 5 /d 1 /m "└── Tự động chọn [1] sau 5s: "
-if %errorlevel% == 2 (set /a _canAutoOnOff=0 & call :background & set _chuyendoi=2 & goto :importTrangBiRepeatType3)
-if %errorlevel% == 1 (jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\settingRepeat\equipment\888888.json> _itemIDList.json 2>nul & goto :autoRepeat4)
+echo.[2] Quay lại menu và tắt auto
+choice /c 12 /n /t 15 /d 1 /m "└── Tự động chọn [1] sau 15s: "
+if %errorlevel% == 2 (set /a _canAutoOnOff=0 & goto:eof)
+if %errorlevel% == 1 (jq --compact-output "[.weapon,.armor,.belt,.necklace,.ring1,.ring2]" %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json> _itemIDList.json 2>nul & goto :autoRepeat4)
 :autoRepeat4
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 set /p _itemIDList=<_itemIDList.json
 echo off
 rem Kiểm tra những giao dịch trước có thành công hay không
@@ -2419,7 +2547,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash19^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
@@ -2435,18 +2563,27 @@ if %_temp% leq 250 (if %_temp% geq 201 (echo 5 > _world.txt 2>nul))
 if %_temp% leq 300 (if %_temp% geq 251 (echo 6 > _world.txt 2>nul))
 if %_temp% leq 350 (if %_temp% geq 301 (echo 7 > _world.txt 2>nul))
 set /p _world=<_world.txt
-rem Auto Poen World
-call :tryOpenWorld
+rem Auto open World
+set _world=%_world: =%
+echo.└── Kiểm tra world %_world% ...
+if %_world% equ 1 (echo.─── World %_world% đã mở & goto :skipOpenWorld)
+echo {"query":"query{stateQuery{unlockedWorldIds(avatarAddress:\"%_address%\")}}"} > input.json
+set _temp=^|curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul|findstr /i %_world%]>nul
+if %errorlevel% equ 0 (echo.─── World %_world% đã mở & goto :skipOpenWorld)
+call :autoOpenWorld & goto :duLieuViCu
+:skipOpenWorld
 set "_temp1=" & set "_temp2=" & set "_temp3="
 set /a _temp1=%_stageSweepOrRepeat%
 if %_stageSweepOrRepeat% == 0 (set /a _temp1=%_stage%+1 2>nul)
 set /a _temp2=%_howManyAP%/%_stakeAP%
 set /a _temp3=%_repeatXturn%*%_stakeAP%
 if %_level% lss %_temp1% (if %_temp3% leq %_actionPoint% (set /a _temp2=%_repeatXturn% 2>nul))
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%","world": "%_world%","stageCC": "%_temp1%","howManyTurn": "%_temp2%","itemIDList": %_itemIDList%}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%","world": "%_world%","stageCC": "%_temp1%","howManyTurn": "%_temp2%","itemIDList": %_itemIDList%}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/ClimbingChilling --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Nhận giá trị vượt quá 1024 kí tự
@@ -2455,7 +2592,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoRepeat5
 )
 :autoRepeat5
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2470,7 +2607,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoRepeat6
 )
 :autoRepeat6
-if [%_signature%] == [] (echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận Signature thành công
 echo ==========
 echo Bước 3: Nhận signTransaction
@@ -2480,10 +2617,9 @@ echo.[1] Tiếp tục repeat, tự động sau 10s
 echo.[2] Quay lại menu và tắt auto
 choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :autoRepeat7)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :autoRepeat7
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm signTransaction ...
@@ -2498,15 +2634,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :autoRepeat8
 )
 :autoRepeat8
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoRepeat
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2517,31 +2655,27 @@ echo.╚═══════════════╝   ╚══════
 echo ==========
 echo Bước 5: Kiểm tra auto Repeat nhân vật: %_name%
 echo [40;97mStage %_temp1%, %_temp2% turn(s) với [40;95mkiểu %_typeRepeat%[40;96m
+echo.─── Kiểm tra lần %_countKtraStaging%
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Repeat thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Repeat đang diễn ra & echo.─── kiểm tra lại sau 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Repeat thất bại & echo.─── đợi 10p sau thử lại auto Repeat, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Repeat thất bại & echo.─── đợi 10p sau thử lại auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Repeat tạm thời thất bại & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Repeat thất bại & echo.─── đợi 10p sau thử lại auto Repeat, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Repeat thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Repeat thất bại & echo.─── đợi 10p sau thử lại auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Repeat thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto Repeat, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
-goto :duLieuViCu
-:tryOpenWorld
-color 0B
-set _world=%_world: =%
-echo.└── Kiểm tra world %_world% ...
-if %_world% equ 1 (echo.─── World %_world% đã mở & goto:eof)
-echo {"query":"query{stateQuery{unlockedWorldIds(avatarAddress:\"%_address%\")}}"} > input.json
-set _temp=^|curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul|findstr /i %_world%]>nul
-if %errorlevel% equ 0 (echo.─── World %_world% đã mở & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+goto:eof
+
+:autoOpenWorld
 echo.─── World %_world% chưa mở
-if %_autoOpenMapOnOff% == 1 (goto :tryOpenWorld0) else (color 4F & echo.─── bạn cần mở world %_world% trước & echo.─── thử lại sau 60s, ... & timeout 60 & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_autoOpenMapOnOff% == 1 (goto :tryOpenWorld0) else (color 4F & echo.─── bạn cần mở world %_world% trước & echo.─── thử lại sau 60s, ... & %_cd%\data\flashError.exe & timeout 60 & echo.└──── Đang cập nhật ... & goto:eof)
 :tryOpenWorld0
 echo ==========
 echo.└── Đang auto mở World %_world%
@@ -2582,7 +2716,7 @@ echo Next world %_temp4% cần [40;97m%_temp5% CRYSTAL[40;96m
 set /a _temp=%_temp5%-%_crystal%
 if %_temp5% geq %_crystal% (
 echo.Nhân vật đang thiếu %_temp% CRYSTAL
-color 4F & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu
+color 4F & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof
 )
 :tryOpenWorld1
 echo.└──── Nhân vật đủ crystal để mở world %_world%
@@ -2627,7 +2761,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryOpenWorld3
 )
 :tryOpenWorld3
-if [%_signature%] == [] (echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng,... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng,... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận Signature thành công
 echo ==========
 echo Bước 4: Nhận signTransaction
@@ -2636,10 +2770,9 @@ echo.[1] Tiếp tục open World %_world%, tự động sau 10s
 echo.[2] Quay lại menu và tắt auto
 choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :tryOpenWorld4)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryOpenWorld4
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_unsignedTransaction% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm signTransaction ...
@@ -2654,15 +2787,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :tryOpenWorld5
 )
 :tryOpenWorld5
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoOpenWorld
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2672,27 +2807,29 @@ if not %_canAuto%==5 echo ║Ví %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║  
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
 echo Bước 6: Kiểm tra auto open world %_world% nhân vật: %_name%
+echo.─── Kiểm tra lần %_countKtraStaging%
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto open World thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto open World đang diễn ra & echo.─── kiểm tra lại sau 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto open World thất bại & echo.─── đợi 10p sau thử lại auto open World, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto open World thất bại & echo.─── đợi 10p sau thử lại auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto open World tạm thời thất bại & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto open World thất bại & echo.─── đợi 10p sau thử lại auto open World, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto open World thành công & echo.─── tiếp tục sau 20s ...  & timeout /t 20 /nobreak & goto :tryOpenWorld)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto open World thất bại & echo.─── đợi 10p sau thử lại auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto open World thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto open World, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 goto:eof
 :tryAutoUseAPpotion
 rem Tạo thư mục lưu dữ liệu
-set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat"
-if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat)
-md %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat"
+if exist %_folder% (rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat)
+md %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 echo.└── Đang auto sử dụng AP potion nhân vật %_name% ...
 rem Kiểm tra số dư
@@ -2700,18 +2837,18 @@ echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{i
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
 rem Lọc kết quả lấy dữ liệu
-jq -r ".data.stateQuery.avatar.inventory.items|[.[].count]|add" output.json > _countAPPotion.txt 2>nul
+jq -r ".data.stateQuery.avatar.inventory.items|(if ([.[].count]|add) == null then 0 else ([.[].count]|add) end)" output.json > _countAPPotion.txt 2>nul
 set /p _countAPPotion=<_countAPPotion.txt
 set /a _countAPPotion=%_countAPPotion% 2>nul
 echo.==========
 echo Nhân vật	:	%_charCount%
 echo Tên		:	%_name%
 echo Stage		:	%_stage%
-if %_countAPPotion% lss 0 (echo Có	:	%_countAPPotion% AP Potion
-color 4F & echo.└── Nhân vật không có AP potion & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu
+if %_countAPPotion% leq 0 (echo Có		:	%_countAPPotion% AP Potion
+color 4F & echo.└── Nhân vật không có AP potion & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof
 ) else (echo Có	:	[40;32m%_countAPPotion%[40;96m AP Potion)
 :tryAutoUseAPpotion1
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charDisplay%\autoRepeat
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
 rem Kiểm tra những giao dịch trước có thành công hay không
 echo ==========
 echo Bước 0: Kiểm tra những lệnh use AP potion trước
@@ -2720,15 +2857,17 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=charge_action_point3^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
-echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charDisplay%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
+echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/useAPpotion --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Nhận giá trị vượt quá 1024 kí tự
@@ -2737,7 +2876,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUseAPpotion2
 )
 :tryAutoUseAPpotion2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2752,7 +2891,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUseAPpotion3
 )
 :tryAutoUseAPpotion3
-if [%_signature%] == [] (echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.─── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận Signature thành công
 echo ==========
 echo Bước 3: Nhận signTransaction
@@ -2761,10 +2900,9 @@ echo.[1] Tiếp tục sử dụng 1 AP potion, tự động sau 10s
 echo.[2] Quay lại menu và tắt auto
 choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :tryAutoUseAPpotion4)
-if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto :displayVi)
+if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryAutoUseAPpotion4
-call %_cd%\batch\TaoInputJson.bat _unsignedTransaction %_kqua% %_cd%\batch\_codeStep3.txt> input1.json 2>nul
-call %_cd%\batch\TaoInputJson.bat _signature %_signature% input1.json> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm signTransaction ...
@@ -2779,15 +2917,17 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
   goto :tryAutoUseAPpotion5
 )
 :tryAutoUseAPpotion5
-call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% %_cd%\batch\_codeStep4.txt> input.json 2>nul
+echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
 set /a _countKtraAuto=0
+set /a _countKtraStaging=0
 :ktraAutoUseAPpotion
 set /a _countKtraAuto+=1
+set /a _countKtraStaging+=1
 color 0B
 cls
 set _temp=       %_9cscanBlock%
@@ -2797,18 +2937,20 @@ if not %_canAuto%==5 echo ║Ví %_vi:~0,7%***	║   ║Block: %_temp:~-7% ║  
 echo.╚═══════════════╝   ╚═══════════════╝   ╚═══════════════╝
 echo ==========
 echo Bước 5: Kiểm tra auto sử dụng 1 AP potion nhân vật: %_name%
+echo.─── Kiểm tra lần %_countKtraStaging%
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto use AP potion thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
-call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% %_cd%\batch\_codeStep5.txt> input.json 2>nul
+echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto use AP potion đang diễn ra & echo.─── kiểm tra lại sau 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto use AP potion thất bại & echo.─── đợi 10p sau thử lại auto use AP potion, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto use AP potion thất bại & echo.─── đợi 10p sau thử lại auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto use AP potion tạm thời thất bại & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto use AP potion thất bại & echo.─── đợi 10p sau thử lại auto use AP potion, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu))
-if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto use AP potion thành công & echo.─── quay lại menu & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto use AP potion thất bại & echo.─── đợi 10p sau thử lại auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof))
+if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto use AP potion thành công & echo.─── quay lại menu ... & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto use AP potion, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto :duLieuViCu)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 goto:eof

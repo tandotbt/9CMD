@@ -7,3 +7,4 @@ for /f "tokens=1,* delims=]" %%A in ('"type %3|find /n /v """') do (
         for /f "delims=" %%X in ('"echo."%%line%%""') do %%~X
     ) ELSE echo.
 )
+exit /b

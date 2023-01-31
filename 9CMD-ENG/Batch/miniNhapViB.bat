@@ -24,6 +24,8 @@ echo {"query":"query{stateQuery{agent(address:\"%_viB%\"){crystal}}goldBalance(a
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Filter the results of data
+findstr /i errors output.json>nul
+if %errorlevel% == 0 (echo Error 1: Wallet B wrong syntax, 'distinguishing both text upcase, lowcase', try again ... && color 4F && timeout 10 && goto :NhapViB)
 jq "..|.crystal?|select(.)|tonumber" output.json > %_cd%\data\_crystalB.txt
 jq "..|.goldBalance?|select(.)|tonumber" output.json > %_cd%\data\_ncgB.txt
 rem Delete Input and Output file draft
