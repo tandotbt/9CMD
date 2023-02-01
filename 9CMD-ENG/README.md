@@ -25,19 +25,9 @@ Request:
 
 ==========
 
-Thay đổi v0.9:
-- Fix AP via stake
-- Fix block premium display
-- Fix mini import wallet
-- Fix auto Sweep / Repeat
-- Fix BATCH RECURSION exceeds STACK limits
-- Fix related to 9cscan
-- Add feature auto Craft / Upgrade
-- Add many filters for file html
-- Add check the version
-- Add notice when have error auto
-- Change check the amount currency
-- Upgrade Planet up 0.46.0
+Thay đổi v0.9.1:
+- Fix open world
+- Fix auto craft / upgrade
 
 ==========
 

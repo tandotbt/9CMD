@@ -26,19 +26,9 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.9:
-- Sửa lỗi nhận AP theo stake
-- Sửa lỗi hiển thị block premium
-- Sửa lỗi mini nhập ví
-- Sửa lỗi tự động Sweep / Repeat
-- Sửa lỗi BATCH RECURSION exceeds STACK limits
-- Sửa lỗi liên quan tới 9cscan
-- Thêm tính năng auto Craft / Upgrade
-- Thêm nhiều bộ lọc cho file html
-- Thêm kiểm tra phiên bản
-- Thêm thông báo khi gặp lỗi auto
-- Thay đổi kiểm tra số lượng tiền tệ
-- Nâng cấp planet lên 0.46.0
+Thay đổi v0.9.1:
+- Sửa lỗi open world
+- Sửa lỗi auto craft / upgrade
 
 ==========
 

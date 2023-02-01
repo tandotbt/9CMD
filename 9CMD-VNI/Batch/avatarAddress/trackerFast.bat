@@ -2559,8 +2559,7 @@ set _world=%_world: =%
 echo.└── Kiểm tra world %_world% ...
 if %_world% equ 1 (echo.─── World %_world% đã mở & goto :skipOpenWorld)
 echo {"query":"query{stateQuery{unlockedWorldIds(avatarAddress:\"%_address%\")}}"} > input.json
-set _temp=^|curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul|findstr /i %_world%]>nul
-if %errorlevel% equ 0 (echo.─── World %_world% đã mở & goto :skipOpenWorld)
+curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul| jq -r "[.data.stateQuery.unlockedWorldIds|.[]|inside("%_world%")]|any" | findstr /i true>nulif %errorlevel% equ 0 (echo.─── World %_world% đã mở & goto :skipOpenWorld)
 call :autoOpenWorld & goto :duLieuViCu
 :skipOpenWorld
 set "_temp1=" & set "_temp2=" & set "_temp3="

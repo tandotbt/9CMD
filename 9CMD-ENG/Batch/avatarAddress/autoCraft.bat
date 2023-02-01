@@ -10,11 +10,11 @@ set /a _countVi=%1
 set /a _countChar=%2
 set _folderVi=vi%_countVi%
 rem Get the wallet being saved
+set _vi=**********************
 set /p _vi=<%_cd%\user\trackedAvatar\%_folderVi%\_vi.txt
 set /p _node=<%_cd%\data\_node.txt
 set _node=%_node: =%
 :menuAutoCraft
-set _vi=**********************
 set _9cscanBlock=*******
 set _canAuto=0
 set /a _premiumTXOK=0 & set /a _passwordOK=0 & set /a _publickeyOK=0 & set /a _keyidOK=0 & set /a _utcFileOK=0
