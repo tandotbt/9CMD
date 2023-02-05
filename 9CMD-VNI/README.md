@@ -26,9 +26,13 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.9.1:
+Thay đổi v0.9.2:
+- Thay đổi cách lấy block hiện tại
+- Thay đổi cách lấy AP theo stake
+- Thay đổi cách đổi node từ 1 đến 5 thay vì cố định 1
+- Thay đổi bước 0 của Sweep và Repeat
+- Thay đổi thời gian chờ 3600 giây thành 600 giây :v
 - Sửa lỗi open world
-- Sửa lỗi auto craft / upgrade
 
 ==========
 

@@ -50,8 +50,8 @@ if not exist %_folder% (md %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%
 cd %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft
 rem Get the current block
 echo.└──── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 rem Load old data if any
 echo.───── Input character data %_countChar% ...
 rem Check if the UTC file is available or not
@@ -68,8 +68,7 @@ if exist %_file% (set /p _publickey=<%_cd%\user\trackedAvatar\%_folderVi%\auto\p
 rem Try to get the key ID
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\auto\KeyID\_KeyID.txt"
 if exist %_file% (set /p _KeyID=<%_cd%\user\trackedAvatar\%_folderVi%\auto\KeyID\_KeyID.txt & set /a _keyidOK=1)
-set /p _char=<%_cd%\user\trackedAvatar\vi%_countVi%\char%_countChar%\_address.txt
-set /p _name=<%_cd%\user\trackedAvatar\vi%_countVi%\char%_countChar%\_name.txt
+
 curl https://api.9cscan.com/account?address=%_vi% --ssl-no-revoke> _allChar.json 2>nul
 %_cd%\batch\jq.exe ".[%_countChar%]|del(.refreshBlockIndex)|del(.avatarAddress)|del(.address)|del(.goldBalance)|.[]|{address, name, level, actionPoint,timeCount: (.dailyRewardReceivedIndex+1700-%_9cscanBlock%)}" _allChar.json> _infoChar.json 2>nul
 %_cd%\batch\jq.exe "{sec: ((.timeCount*12)%%60),minute: ((((.timeCount*12)-(.timeCount*12)%%60)/60)%%60),hours: (((((.timeCount*12)-(.timeCount*12)%%60)/60)-(((.timeCount*12)-(.timeCount*12)%%60)/60%%60))/60)}" _infoChar.json> _infoCharAp.json 2>nul
@@ -101,7 +100,9 @@ set /p _timeCount=<_timeCount.txt
 rem Delete Input and Output filters
 del /q input.json 2>nul
 del /q output.json 2>nul
+set /a _stage=0
 set /p _stage=<_stage.txt
+if %_stage% == 0 (echo.Error 1.1: Opened stage not found & echo.the cause is node broken & echo.use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & color 4F & timeout 5 & goto :menuAutoCraftRefreshData)
 set /p _crystal=<_crystal.txt
 set /a _crystal=%_crystal% 2>nul
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\CheckItem\"
@@ -653,8 +654,8 @@ color 0B
 mode con:cols=60 lines=25
 rem Get the current block
 echo.└──── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 cls
 set /a _canAuto=%_premiumTXOK% + %_passwordOK% + %_publickeyOK% + %_KeyIDOK% + %_utcFileOK%
 set _temp=       %_9cscanBlock%
@@ -772,7 +773,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -795,7 +796,7 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get value exceeding 1024 characters
@@ -804,7 +805,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoCraft2
 )
 :tryAutoCraft2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".option1" output.json> _optionBlock1.txt
 jq -r ".option2" output.json> _optionBlock2.txt
 jq -r ".option3" output.json> _optionBlock3.txt
@@ -827,7 +828,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoCraft3
 )
 :tryAutoCraft3
-if [%_signature%] == [] (color 4F & echo.└──── Error 1: The password saved is not right ... & %_cd%\data\flashError.exe & echo.───── wait 10 minutes after try again, ... & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if [%_signature%] == [] (color 4F & echo.└──── Error 1: The password saved is not right ... & %_cd%\data\flashError.exe & echo.───── wait 10 minutes after try again, ... & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -883,7 +884,7 @@ if "%_tempSuperCraft%" == "true" (echo Step 5: Check auto Super craft %_7temp%) 
 echo character: %_name%
 echo.slot: %_slot%
 echo.─── Check %_countKtraStaging% time(s)
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto craft failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto craft failure & echo.─── the cause is node broken & echo.─── use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -897,7 +898,7 @@ if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.──
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto craft failure & echo.─── plus 50 blocks for slot %_slot%, ... & %_cd%\data\flashError.exe & set /a _tempAddBlock=50 & goto :autoCraftEditSlotFAILURE))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto craft successful & goto :autoCraftEditSlotSUCCESS)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoCraft)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto craft, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto craft, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 :autoCraftEditSlotSUCCESS
 if "%_tempSuperCraft%" equ "false" (goto :autoCraftEditSlotSUCCESS_2)
 set /a _tempAddBlock=20
@@ -927,8 +928,8 @@ jq -r ".skill" _option.json> _hasSkill.txt
 set /p _hasSkill=<_hasSkill.txt
 rem Get the current block
 echo.───── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 set /a _tempBlockEnd=%_9cscanBlock%+%_optionBlock1%+%_hasOption2%*%_optionBlock2%+%_hasSkill%*%_optionBlock3%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item: \"%_itemIdCraft%\",slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item: \"%_itemIdCraft%\",slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -964,8 +965,8 @@ echo.───── Complete -1 Supper Craft hammer for %_7temp%
 echo.└──── Set +%_tempAddBlock% blocks for slot %_slot% ...
 rem Get the current block
 echo.└──── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 set /a _tempBlockEnd=%_9cscanBlock%+%_tempAddBlock%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item,slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -1026,7 +1027,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=item_enhancement11^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & goto:eof & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & goto:eof & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -1037,7 +1038,7 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get value exceeding 1024 characters
@@ -1046,7 +1047,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUpgrade2
 )
 :tryAutoUpgrade2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction thành công
 echo ==========
 echo Step 2: Get Signature
@@ -1061,7 +1062,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUpgrade3
 )
 :tryAutoUpgrade3
-if [%_signature%] == [] (color 4F & echo.└──── Error 1: The password saved is not right ... & %_cd%\data\flashError.exe & echo.───── wait 10 minutes after try again, ... & timeout /t 3600 /nobreak & goto:eof & echo.└──── Updating ... & goto:eof)
+if [%_signature%] == [] (color 4F & echo.└──── Error 1: The password saved is not right ... & %_cd%\data\flashError.exe & echo.───── wait 10 minutes after try again, ... & timeout /t 600 /nobreak & goto:eof & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature thành công
 echo ==========
 echo Step 3: Get signTransaction
@@ -1113,7 +1114,7 @@ echo character: %_name%
 echo.slot: %_slot%
 jq -r "\"─── \(.type) \(.grade) grade from level \(.levelUp) up \(.levelUp+1)\n─── with element \(if .ele1 == 1 then \"Fire\" elif .ele1 == 2 then \"Water\" elif .ele1 == 3 then \"Land\" elif .ele1 == 4 then \"Wind\" else \"Normal\" end) to \(if .ele2 == 1 then \"Fire\" elif .ele2 == 2 then \"Water\" elif .ele2 == 3 then \"Land\" elif .ele2 == 4 then \"Wind\" else \"Normal\" end)\"" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoUpgrade.json
 echo.─── Check %_countKtraStaging% time(s)
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto upgrade failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto upgrade failure & echo.─── the cause is node broken & echo.─── use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -1127,7 +1128,7 @@ if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.──
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto upgrade failure & echo.─── plus 50 blocks for slot %_slot%, ... & %_cd%\data\flashError.exe & set /a _tempAddBlock=50 & goto :autoCraftEditSlotFAILURE_2))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto upgrade successful & goto :autoUpgradeEditSlotSUCCESS)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUpgrade)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto upgrade, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto upgrade, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 goto:eof
 :autoUpgradeEditSlotSUCCESS
 echo.└──── Save Slot information blocks %_slot% ...
@@ -1139,8 +1140,8 @@ set /p _temp=<_temp.txt
 set /a _temp=%_temp% 2>nul
 rem Get the current block
 echo.───── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 set /a _tempBlockEnd=%_9cscanBlock%+%_temp%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item: \"%_itemA%\",slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item: \"%_itemA%\",slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -1158,4 +1159,9 @@ curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: 
 del /q output.json
 echo %_9cscanBlock% > _9cscanBlockSave.txt
 timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof
+goto:eof
+:changeNode
+set /a _node+=1
+if %_node% gtr 5 (set /a _node=1)
+echo Node %_node% will be used
 goto:eof

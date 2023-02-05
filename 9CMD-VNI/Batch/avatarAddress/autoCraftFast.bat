@@ -50,8 +50,8 @@ if not exist %_folder% (md %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%
 cd %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft
 rem Lấy block hiện tại
 echo.└──── Lấy block hiện tại ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 rem Nạp dữ liệu cũ nếu có
 echo.───── Nhập dữ liệu nhân vật %_countChar% ...
 rem Ktra file UTC có hay không
@@ -100,7 +100,9 @@ set /p _timeCount=<_timeCount.txt
 rem Xóa file nháp input và output
 del /q input.json 2>nul
 del /q output.json 2>nul
+set /a _stage=0
 set /p _stage=<_stage.txt
+if %_stage% == 0 (echo.Lỗi 1.1: Không tìm thấy stage đã mở & echo.nguyên nhân có thể do node đã chọn hỏng & echo.sử dụng node tiếp theo và thử lại ... & %_cd%\data\flashError.exe & call :changeNode & color 4F & timeout 5 & goto :menuAutoCraftRefreshData)
 set /p _crystal=<_crystal.txt
 set /a _crystal=%_crystal% 2>nul
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\CheckItem\"
@@ -650,8 +652,8 @@ color 0B
 mode con:cols=60 lines=25
 rem Lấy block hiện tại
 echo.└──── Lấy block hiện tại ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 cls
 set /a _canAuto=%_premiumTXOK% + %_passwordOK% + %_publickeyOK% + %_KeyIDOK% + %_utcFileOK%
 set _temp=       %_9cscanBlock%
@@ -769,7 +771,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
@@ -792,7 +794,7 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Nhận giá trị vượt quá 1024 kí tự
@@ -801,7 +803,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoCraft2
 )
 :tryAutoCraft2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".option1" output.json> _optionBlock1.txt
 jq -r ".option2" output.json> _optionBlock2.txt
 jq -r ".option3" output.json> _optionBlock3.txt
@@ -824,7 +826,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoCraft3
 )
 :tryAutoCraft3
-if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & %_cd%\data\flashError.exe & echo.───── đợi 10p sau thử lại, ... & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & %_cd%\data\flashError.exe & echo.───── đợi 10p sau thử lại, ... & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận Signature thành công
 echo ==========
 echo Bước 3: Nhận signTransaction
@@ -880,7 +882,7 @@ if "%_tempSuperCraft%" == "true" (echo Bước 5: Kiểm tra auto Super craft %_
 echo nhân vật: %_name%
 echo.slot: %_slot%
 echo.─── Kiểm tra lần %_countKtraStaging%
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto craft thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto craft thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node tiếp theo và thử lại ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -894,7 +896,7 @@ if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.──
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto craft thất bại & echo.─── cộng 50 blocks cho slot %_slot%, ... & %_cd%\data\flashError.exe & set /a _tempAddBlock=50 & goto :autoCraftEditSlotFAILURE))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto craft thành công & goto :autoCraftEditSlotSUCCESS)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoCraft)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto craft, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto craft, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 :autoCraftEditSlotSUCCESS
 if "%_tempSuperCraft%" equ "false" (goto :autoCraftEditSlotSUCCESS_2)
 set /a _tempAddBlock=20
@@ -924,8 +926,8 @@ jq -r ".skill" _option.json> _hasSkill.txt
 set /p _hasSkill=<_hasSkill.txt
 rem Lấy block hiện tại
 echo.───── Lấy block hiện tại ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 set /a _tempBlockEnd=%_9cscanBlock%+%_optionBlock1%+%_hasOption2%*%_optionBlock2%+%_hasSkill%*%_optionBlock3%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item: \"%_itemIdCraft%\",slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item: \"%_itemIdCraft%\",slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -961,8 +963,8 @@ echo.───── Hoàn thành -1 búa Supper Craft cho %_7temp%
 echo.└──── Đang +%_tempAddBlock% blocks cho slot %_slot% ...
 rem Lấy block hiện tại
 echo.└──── Lấy block hiện tại ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 set /a _tempBlockEnd=%_9cscanBlock%+%_tempAddBlock%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item,slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -1023,7 +1025,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=item_enhancement11^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
@@ -1034,7 +1036,7 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Nhận giá trị vượt quá 1024 kí tự
@@ -1043,7 +1045,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUpgrade2
 )
 :tryAutoUpgrade2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -1058,7 +1060,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUpgrade3
 )
 :tryAutoUpgrade3
-if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.───── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if [%_signature%] == [] (color 4F & echo.└──── Lỗi 1: Mật khẩu đang lưu chưa đúng ... & echo.───── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận Signature thành công
 echo ==========
 echo Bước 3: Nhận signTransaction
@@ -1110,7 +1112,7 @@ echo nhân vật: %_name%
 echo.slot: %_slot%
 jq -r "\"─── \(.type) \(.grade) búa từ level \(.levelUp) lên \(.levelUp+1)\n─── với thuộc tính từ \(if .ele1 == 1 then \"Fire\" elif .ele1 == 2 then \"Water\" elif .ele1 == 3 then \"Land\" elif .ele1 == 4 then \"Wind\" else \"Normal\" end) đến \(if .ele2 == 1 then \"Fire\" elif .ele2 == 2 then \"Water\" elif .ele2 == 3 then \"Land\" elif .ele2 == 4 then \"Wind\" else \"Normal\" end)\"" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoUpgrade.json
 echo.─── Kiểm tra lần %_countKtraStaging%
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto upgrade thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node số 1 và thử lại ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto upgrade thất bại & echo.─── nguyên nhân do node đã chọn hỏng & echo.─── sử dụng node tiếp theo và thử lại ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -1124,7 +1126,7 @@ if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.──
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto upgrade thất bại & echo.─── cộng 50 blocks cho slot %_slot%, ... & %_cd%\data\flashError.exe & set /a _tempAddBlock=50 & goto :autoCraftEditSlotFAILURE_2))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto upgrade thành công & goto :autoUpgradeEditSlotSUCCESS)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Lỗi 2.1: Lỗi không xác định & echo.─── kiểm tra lại lần %_countKtraAuto% sau 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUpgrade)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto upgrade, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xác định & echo.─── đợi 10p sau thử lại auto upgrade, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 goto:eof
 :autoUpgradeEditSlotSUCCESS
 echo.└──── Đang lưu lại blocks thông tin slot %_slot% ...
@@ -1136,8 +1138,8 @@ set /p _temp=<_temp.txt
 set /a _temp=%_temp% 2>nul
 rem Lấy block hiện tại
 echo.───── Lấy block hiện tại ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 set /a _tempBlockEnd=%_9cscanBlock%+%_temp%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item: \"%_itemA%\",slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item: \"%_itemA%\",slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -1154,4 +1156,9 @@ curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: 
 del /q output.json
 echo %_9cscanBlock% > _9cscanBlockSave.txt
 timeout /t 20 /nobreak & echo.└──── Đang cập nhật ... & goto:eof
+goto:eof
+:changeNode
+set /a _node+=1
+if %_node% gtr 5 (set /a _node=1)
+echo Node %_node% sẽ được sử dụng
 goto:eof

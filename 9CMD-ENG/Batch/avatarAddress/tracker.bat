@@ -55,8 +55,8 @@ copy "%_cd%\_cd.txt" "%_cd%\user\trackedAvatar\%_folderVi%\_cd.txt">nul
 rem Get the current block
 echo.└──── Get the current block ...
 cd %_cd%\user\trackedAvatar\%_folderVi%
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 rem Receive all character data
 echo.└──── Get information all characters ...
 cd %_cd%\batch\avatarAddress
@@ -72,11 +72,9 @@ cd %_cd%\user\trackedAvatar\%_folderVi%
 echo {"query":"query{stateQuery{stakeStates(addresses:\"%_vi%\"){deposit}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
-echo 5 > _stakeAP.txt
 rem Filter the results of data
-findstr /i null output.json> nul
-if %errorlevel% == 1 ("%_cd%\batch\jq.exe" -r ".data.stateQuery.stakeStates|.[]|.deposit|tonumber|if . >= 500000 then 3 elif . >= 5000 then 4 else 5 end" output.json > _stakeAP.txt 2>nul)
-set /p _stakeAP=<_stakeAP.txt & set /a _stakeAP=%_stakeAP% 2>nul
+%_cd%\batch\jq.exe -r ".data.stateQuery.stakeStates|.[]|if . == null then 5 else (.deposit|tonumber|if . >= 500000 then 3 elif . >= 5000 then 4 else 5 end) end" output.json > _stakeAP.txt 2>nul
+set /p _stakeAP=<_stakeAP.txt
 rem Delete the draft file input and output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\input.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\output.json 2>nul
@@ -134,7 +132,7 @@ del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\input.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\output.json 2>nul
 set /a _stage=0
 set /p _stage=<_stage.txt
-if %_stage% == 0 (echo.Error 1.1: Opened stage not found & echo.the cause is node broken & echo.use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & color 4F & timeout 5 & goto :BatDau)
+if %_stage% == 0 (echo.Error 1.1: Opened stage not found & echo.the cause is node broken & echo.use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & color 4F & timeout 5 & goto :BatDau)
 rem Create necessary files
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt"
 if not exist %_file% (echo 0 > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_autoSweepRepeatOnOffChar.txt)
@@ -237,6 +235,7 @@ rem Try auto Sweep
 set _charCount=1
 :displayChar2
 call :tryAutoSweep
+rem Auto sweep
 set "_temp="
 set _temp=%_howManyTurn%
 if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
@@ -247,6 +246,7 @@ rem Try auto Repeat
 set _charCount=1
 :displayChar3
 call :tryAutoRepeat
+rem Auto repeat
 set "_temp="
 set _temp=%_howManyTurn%
 if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
@@ -361,6 +361,7 @@ goto:eof
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
 goto:eof
+rem Auto refill AP
 :tryAutoSweep
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _name=<_name.txt & set /p _level=<_level.txt & set /p _stage=<_stage.txt & set /p _actionPoint=<_actionPoint.txt & set /p _infoCharAp=<_infoCharAp.txt & set /p _timeCount=<_timeCount.txt & set /p _address=<_address.txt
@@ -1091,8 +1092,8 @@ rem Delete the draft file input and output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiWeapon1
 echo.└── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 call :background3
 echo.
 echo.Refresh the website to apply the equipment Weapon
@@ -1193,8 +1194,8 @@ rem Delete the draft file input and output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiArmor1
 echo.└── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 call :background3
 echo.
 echo.Refresh the website to apply the equipment Armor
@@ -1294,8 +1295,8 @@ rem Delete the draft file input and output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiBelt1
 echo.└── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 call :background3
 echo.
 echo.Refresh the website to apply the equipment Belt
@@ -1396,8 +1397,8 @@ rem Delete the draft file input and output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiNecklace1
 echo.└── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 call :background3
 echo.
 echo.Refresh the website to apply the equipment Necklace
@@ -1502,8 +1503,8 @@ rem Delete the draft file input and output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing11
 echo.└── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 call :background3
 echo.
 echo.Refresh the website to apply the equipment Ring1
@@ -1617,8 +1618,8 @@ rem Delete the draft file input and output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing21
 echo.└── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 call :background3
 echo.
 echo.Refresh the website to apply the equipment Ring2
@@ -2095,7 +2096,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -2105,10 +2106,10 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul & set /p _kqua=<_kqua.txt
-if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2120,7 +2121,7 @@ goto :KTraSignature1
 :KTraSignature1
 set "_signature="
 set /p _signature=<_signature.txt
-if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -2162,7 +2163,7 @@ echo.╚═══════════════╝   ╚══════
 echo ==========
 echo Step 5: Checking auto Refill AP character: %_name%
 echo.─── Check %_countKtraStaging% time(s)
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── the cause is node broken & echo.─── use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -2171,12 +2172,12 @@ echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Refill AP happenning & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after trying again & echo.───  auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after trying again & echo.───  auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Refill AP temporary failure & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after try again auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Refill AP failure & echo.─── wait 10 minutes after try again auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Refill AP successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRefillAP)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after try again auto Refill AP, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 goto:eof
 :autoSweep
 echo.└── Start Auto Sweep Character: %_name% ...
@@ -2192,12 +2193,12 @@ echo off
 rem Check whether the previous transactions are successful or not
 echo ==========
 echo Step 0: Check previous Sweep transactions
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep8^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep9^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep8^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep9^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: No SUCCESS transaction found & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -2218,7 +2219,7 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get the value exceeds 1024 characters
@@ -2227,7 +2228,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep1
 )
 :autoSweep1
-if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2244,7 +2245,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep2
 )
 :autoSweep2
-if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ...  & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if [%_signature%] == [] (echo.└──── Error 1: The password saved incorrect, ...  & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -2291,7 +2292,7 @@ echo.╚═══════════════╝   ╚══════
 echo ==========
 echo Step 5: Checking auto Sweep character: %_name%
 echo.─── Check %_countKtraStaging% time(s)
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── the cause is node broken & echo.─── use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -2300,12 +2301,12 @@ echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Sweep happenning & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again & echo.───  auto Sweep, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again & echo.───  auto Sweep, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Sweep temporary failure & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Sweep failure & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Sweep successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% times after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoSweep)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 goto:eof
 :autoRepeat
 echo.└── Start Auto Repeat character: %_name% ...
@@ -2349,8 +2350,8 @@ goto :autoRepeat4
 echo Level character	:	%_level%
 echo Picked setup	:	888888.json
 echo.└── Get the current block ...
-curl https://api.9cscan.com/transactions?limit=0 --ssl-no-revoke> _9cscanBlock.json 2>nul & set /p _9cscanBlock=<_9cscanBlock.json
-del /q _9cscanBlock.json & set /a _9cscanBlock=%_9cscanBlock:~-11,-4%
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+set /a _9cscanBlock=%_9cscanBlock%
 echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json
 echo.└── Taking equipment data ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
@@ -2546,12 +2547,12 @@ echo off
 rem Check whether the previous transactions are successful or not
 echo ==========
 echo Step 0: Check previous Repeat transactions
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash19^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash20^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash19^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash20^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -2572,7 +2573,8 @@ set _world=%_world: =%
 echo.└── Check world %_world% ...
 if %_world% equ 1 (echo.─── World %_world% opened & goto :skipOpenWorld)
 echo {"query":"query{stateQuery{unlockedWorldIds(avatarAddress:\"%_address%\")}}"} > input.json
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul| jq -r "[.data.stateQuery.unlockedWorldIds|.[]|inside("%_world%")]|any" | findstr /i true>nulif %errorlevel% equ 0 (echo.─── World %_world% opened & goto :skipOpenWorld)
+curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul| jq -r "[.data.stateQuery.unlockedWorldIds|.[]|inside("%_world%")]|any" | findstr /i true>nul
+if %errorlevel% equ 0 (echo.─── World %_world% opened & goto :skipOpenWorld)
 call :autoOpenWorld & goto :duLieuViCu
 :skipOpenWorld
 set "_temp1=" & set "_temp2=" & set "_temp3="
@@ -2586,7 +2588,7 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get value exceeding 1024 characters
@@ -2595,7 +2597,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoRepeat5
 )
 :autoRepeat5
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2610,7 +2612,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoRepeat6
 )
 :autoRepeat6
-if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -2659,7 +2661,7 @@ echo ==========
 echo Step 5: Check auto Repeat character: %_name%
 echo [40;97mStage %_temp1%, %_temp2% turn(s) with [40;95mtype %_typeRepeat%[40;96m
 echo.─── Check %_countKtraStaging% time(s)
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Repeat failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Repeat failure & echo.─── the cause is node broken & echo.─── use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -2668,12 +2670,12 @@ echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto Repeat is taking place & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto Repeat temporary failure & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto Repeat failure & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto Repeat successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoRepeat)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto Repeat, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 goto:eof
 
 :autoOpenWorld
@@ -2719,7 +2721,7 @@ echo Next world %_temp4% need [40;97m%_temp5% CRYSTAL[40;96m
 set /a _temp=%_temp5%-%_crystal%
 if %_temp5% geq %_crystal% (
 echo.Need %_temp% CRYSTAL to unlock next world
-color 4F & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof
+color 4F & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof
 )
 :tryOpenWorld1
 echo.└──── Start aotu open the world %_world%
@@ -2764,7 +2766,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryOpenWorld3
 )
 :tryOpenWorld3
-if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 4: Get signTransaction
@@ -2810,7 +2812,7 @@ echo.╚═══════════════╝   ╚══════
 echo ==========
 echo Step 6: Check auto open world %_world% character: %_name%
 echo.─── Check %_countKtraStaging% time(s)
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto open world failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto open world failure & echo.─── the cause is node broken & echo.─── use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -2819,12 +2821,12 @@ echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto open World is taking place & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto open World temporary failure & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto open World failure & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto open World successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoOpenWorld)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto open World, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 goto:eof
 :tryAutoUseAPpotion
 rem Create data saving folders
@@ -2847,7 +2849,7 @@ echo Character	:	%_charCount%
 echo Name		:	%_name%
 echo Stage		:	%_stage%
 if %_countAPPotion% leq 0 (echo Have		:	%_countAPPotion% AP Potion
-color 4F & echo.└── Character does not have AP potion & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof
+color 4F & echo.└── Character does not have AP potion & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof
 ) else (echo Have		:	[40;32m%_countAPPotion%[40;96m AP Potion)
 :tryAutoUseAPpotion1
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\autoRepeat
@@ -2859,7 +2861,7 @@ set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 echo.
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=charge_action_point3^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 1: Not found SUCCESS transactions & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -2869,7 +2871,7 @@ curl -X POST -H "accept: application/json" -H "Content-Type: application/json" -
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul
 rem Get value exceeding 1024 characters
@@ -2878,7 +2880,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUseAPpotion2
 )
 :tryAutoUseAPpotion2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
@@ -2893,7 +2895,7 @@ for %%A in (_signature.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUseAPpotion3
 )
 :tryAutoUseAPpotion3
-if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if [%_signature%] == [] (echo.└──── Error 1: The password is not right ... & echo.─── wait 10 minutes and try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get Signature successful
 echo ==========
 echo Step 3: Get signTransaction
@@ -2940,7 +2942,7 @@ echo.╚═══════════════╝   ╚══════
 echo ==========
 echo Step 5: Check auto use 1 AP potion character: %_name%
 echo.─── Check %_countKtraStaging% time(s)
-if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto use AP potion failure & echo.─── the cause is node broken & echo.─── use node 1 and try again ... & %_cd%\data\flashError.exe & set /a _node=1 & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto use AP potion failure & echo.─── the cause is node broken & echo.─── use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
@@ -2949,10 +2951,15 @@ echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
 if "%_txStatus%" == "STAGING" (color 0B & echo.─── Status: Auto use AP potion is taking place & echo.─── check again after 15s ... & set /a _countKtraAuto=0 & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion)
-if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if "%_txStatus%" == "FAILURE" (color 4F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 if "%_txStatus%" == "INVALID" (if %_countKtraAuto% lss 4 (color 8F & echo.─── Status: Auto use AP potion temporary failure & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion))
-if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof))
+if "%_txStatus%" == "INVALID" (if %_countKtraAuto% geq 4 (color 8F & echo.─── Status: Auto use AP potion failure & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof))
 if "%_txStatus%" == "SUCCESS" (color 2F & echo.─── Status: Auto use AP potion successful & echo.─── return menu ... & timeout /t 20 /nobreak & echo.└──── Updating ... & goto:eof)
 if %_countKtraAuto% lss 4 (color 4F & echo.─── Error 2.1: Unknown error & echo.─── check again %_countKtraAuto% time(s) after 15s ... & timeout /t 15 /nobreak>nul & goto :ktraAutoUseAPpotion)
-if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 3600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_countKtraAuto% geq 4 (color 4F & echo.─── Error 2.2: Unknown error & echo.─── wait 10 minutes and try again auto use AP potion, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
+goto:eof
+:changeNode
+set /a _node+=1
+if %_node% gtr 5 (set /a _node=1)
+echo Node %_node% will be used
 goto:eof
