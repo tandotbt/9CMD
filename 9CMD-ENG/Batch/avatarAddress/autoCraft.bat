@@ -28,8 +28,7 @@ if not exist %_folder% (md %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%
 cd %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft
 rem Get the current block
 echo.└──── Get the current block ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 rem Load old data if any
 echo.───── Input character data %_countChar% ...
 rem Check if the UTC file is available or not
@@ -62,7 +61,7 @@ set /p _timeCount=<_timeCount.txt
 echo.───── Get opened Stage and Crystal balance ...
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){actionPoint,dailyRewardReceivedIndex,level,stageMap{count}}agent(address:\"%_vi%\"){crystal}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 rem Filter the results of data
 %_cd%\batch\jq.exe -r "..|.count?|select(.)" output.json > _stage.txt 2>nul
 %_cd%\batch\jq.exe -r "..|.crystal?|select(.)|tonumber" output.json > _crystal.txt 2>nul
@@ -282,7 +281,10 @@ if %errorlevel% equ 2 (goto :pickCraftType)
 if %errorlevel% equ 3 (goto :pickCraftBlock)
 if %errorlevel% equ 4 (goto :pickCraftHammer)
 if %errorlevel% equ 6 (set /a _slot+=1 & goto :settingAuto1)
-if %errorlevel% equ 5 (
+if %errorlevel% equ 7 (goto :displayMenuAutoCraft)
+if %errorlevel% equ 9 (goto :settingDataOnline)
+if %errorlevel% equ 8 (echo.└─── Processing ... & goto :viewIDitem)
+if %errorlevel% equ 5 (echo.)
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft
 if %_slot% == 1 (%_cd%\batch\jq.exe "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type: \"Upgrade\",slot1_block,slot1_item,slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" _infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (%_cd%\batch\jq.exe "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type: \"Upgrade\",slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" _infoSlot.json> _tempInfoSlot.json)
@@ -300,10 +302,7 @@ curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: 
 del /q output.json
 echo %_9cscanBlock% > _9cscanBlockSave.txt
 goto :settingAutoUpgrade
-)
-if %errorlevel% equ 7 (goto :displayMenuAutoCraft)
-if %errorlevel% equ 9 (goto :settingDataOnline)
-if %errorlevel% equ 8 (echo.└─── Processing ...)
+:viewIDitem
 %_cd%\batch\jq.exe "[.[]|{name,equipment,elementalType,mat_1,mat_2,mat_3,mat_4,equipment_id,grade,unlock_stage,level_req,max_hammer_count,crystal_cost,mat_1_count,mat_2_count,mat_3_count,mat_4_count,slot: (if .equipment_id == %_slot1_id% then (.slot + 1) else 0 end),picked}]" %_cd%\Data\ModulPlus\Basic.txt> output1.json
 %_cd%\batch\jq.exe "[.[]|{name,equipment,elementalType,mat_1,mat_2,mat_3,mat_4,equipment_id,grade,unlock_stage,level_req,max_hammer_count,crystal_cost,mat_1_count,mat_2_count,mat_3_count,mat_4_count,slot: (if .equipment_id == %_slot2_id% then (.slot + 2) else .slot end),picked}]" output1.json> output2.json
 %_cd%\batch\jq.exe "[.[]|{name,equipment,elementalType,mat_1,mat_2,mat_3,mat_4,equipment_id,grade,unlock_stage,level_req,max_hammer_count,crystal_cost,mat_1_count,mat_2_count,mat_3_count,mat_4_count,slot: (if .equipment_id == %_slot3_id% then (.slot + 3) else .slot end),picked}]" output2.json> output3.json
@@ -338,7 +337,10 @@ choice /c 123456789 /n /m "Enter the number from the keyboard: "
 if %errorlevel% equ 1 (goto :pickCraftBlock)
 if %errorlevel% equ 2 (goto :pickCraftItemID)
 if %errorlevel% equ 3 (goto :editInfoUpgarde)
-if %errorlevel% equ 5 (
+if %errorlevel% equ 6 (set /a _slot+=1 & goto :settingAuto1)
+if %errorlevel% equ 7 (goto :displayMenuAutoCraft)
+if %errorlevel% equ 9 (goto :settingDataOnline)
+if %errorlevel% equ 5 (echo.)
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft
 if %_slot% == 1 (%_cd%\batch\jq.exe "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type: \"Basic\",slot1_block,slot1_item,slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" _infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (%_cd%\batch\jq.exe "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type: \"Basic\",slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" _infoSlot.json> _tempInfoSlot.json)
@@ -356,12 +358,6 @@ curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: 
 del /q output.json
 echo %_9cscanBlock% > _9cscanBlockSave.txt
 goto :settingAuto1
-)
-if %errorlevel% equ 6 (set /a _slot+=1 & goto :settingAuto1)
-
-if %errorlevel% equ 7 (goto :displayMenuAutoCraft)
-if %errorlevel% equ 9 (goto :settingDataOnline)
-goto :settingAuto
 :editInfoUpgarde
 echo.Choose an upgrade item
 echo.[1] Weapon
@@ -632,8 +628,7 @@ color 0B
 mode con:cols=60 lines=25
 rem Get the current block
 echo.└──── Get the current block ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 cls
 set /a _canAuto=%_premiumTXOK% + %_passwordOK% + %_publickeyOK% + %_KeyIDOK% + %_utcFileOK%
 set _temp=       %_9cscanBlock%
@@ -732,7 +727,7 @@ set /p _temp2=<_temp2.txt/
 set /a _temp2=%_temp2% 2>nul
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{items(inventoryItemId:%_temp1%){count}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 jq -r ".data.stateQuery.avatar.inventory.items|if . == [] then 0 else .[].count end" output.json > _temp3.txt
 set /p _temp3=<_temp3.txt
 set /a _temp3=%_temp3% 2>nul
@@ -749,9 +744,9 @@ echo Step 0: Check the previous craft transaction
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
-echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
+REM echo.
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -773,6 +768,8 @@ echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_char%","stt":%_countChar
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/CraftEquipment --ssl-no-revoke --location> output.json 2>nul
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
+findstr /i Internal output.json> nul
+if %errorlevel% equ 0 (echo.└── Error 0.2: Error server & echo.─── wait 5 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 300 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
 if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
@@ -783,7 +780,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoCraft2
 )
 :tryAutoCraft2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".option1" output.json> _optionBlock1.txt
 jq -r ".option2" output.json> _optionBlock2.txt
 jq -r ".option3" output.json> _optionBlock3.txt
@@ -821,12 +818,12 @@ echo.└── Export the list of items before craft
 rem Capture the list of items before and after
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 jq "[.data.stateQuery.avatar.inventory.equipments|.[]]" output.json > before.json
 rem Find signTransaction
 echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.─── Find signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
 echo.└──── Get signTransaction successful
@@ -841,7 +838,7 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
 :tryAutoCraft5
 echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Find stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Get stageTransaction successful
@@ -866,7 +863,7 @@ if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto craft fail
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
@@ -892,7 +889,7 @@ echo.───── Export the list of items after craft
 rem Save the list of items before and after
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 jq "[.data.stateQuery.avatar.inventory.equipments|.[]]" output.json > after.json
 echo [> 1.txt & echo ,> 2.txt & echo ]> 3.txt
 type 1.txt before.json 2.txt after.json 3.txt> output.json 2>nul
@@ -906,8 +903,7 @@ jq -r ".skill" _option.json> _hasSkill.txt
 set /p _hasSkill=<_hasSkill.txt
 rem Get the current block
 echo.───── Get the current block ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 set /a _tempBlockEnd=%_9cscanBlock%+%_optionBlock1%+%_hasOption2%*%_optionBlock2%+%_hasSkill%*%_optionBlock3%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item: \"%_itemIdCraft%\",slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item: \"%_itemIdCraft%\",slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -943,8 +939,7 @@ echo.───── Complete -1 Supper Craft hammer for %_7temp%
 echo.└──── Set +%_tempAddBlock% blocks for slot %_slot% ...
 rem Get the current block
 echo.└──── Get the current block ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 set /a _tempBlockEnd=%_9cscanBlock%+%_tempAddBlock%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item,slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -978,7 +973,7 @@ jq -r "\"─── \(.type) \(.grade) grade from level \(.levelUp) up \(.levelUp
 echo.─── Choose 2 equipment with the highest and lowest CP ...
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo ^".data.stateQuery.avatar.inventory.equipments^|.[]^|select(.itemSubType == ^\^"^\(.type^|ascii_upcase)^\^")^|select(.grade == ^\(.grade))^|select(.level == ^\(.levelUp))^|select(((if .elementalType == ^\^"WIND^\^" then 4 elif .elementalType == ^\^"LAND^\^" then 3 elif .elementalType == ^\^"WATER^\^" then 2 elif .elementalType == ^\^"FIRE^\^" then 1 else 0 end) ^>= ^\(.ele1))and(if .elementalType == ^\^"WIND^\^" then 4 elif .elementalType == ^\^"LAND^\^" then 3 elif .elementalType == ^\^"WATER^\^" then 2 elif .elementalType == ^\^"FIRE^\^" then 1 else 0 end) ^<= ^\(.ele2))^|{itemId,stat: (.stat.value),CP: (if .skills != [] then (.statsMap^|(.hP*0.7+.aTK*10.5+.dEF*10.5+.sPD*3+.hIT*2.3)*1.15^|round) else (.statsMap^|.hP*0.7+.aTK*10.5+.dEF*10.5+.sPD*3+.hIT*2.3^|round) end)}^"> _filter1.txt 2>nul
 jq -r -f _filter1.txt %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoUpgrade.json> _filter2.txt 2>nul
 jq -c -f _filter2.txt output.json> output2.json 2>nul
@@ -1003,9 +998,9 @@ echo Step 0: Check previous upgrade transaction
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=item_enhancement11^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
-echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=item_enhancement11^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & goto:eof & echo.└──── Updating ... & goto:eof)
+REM echo.
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=item_enhancement11^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & goto:eof & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
@@ -1015,6 +1010,8 @@ echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_char%","stt":%_countChar
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/UpgradeEquipment --ssl-no-revoke --location> output.json 2>nul
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof)
+findstr /i Internal output.json> nul
+if %errorlevel% equ 0 (echo.└── Error 0.2: Error server & echo.─── wait 5 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout /t 300 /nobreak & echo.└──── Updating ... & goto:eof)
 findstr /i kqua output.json> nul
 if %errorlevel% equ 1 (color 4F & echo.└── Error 0: Unknown error & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
@@ -1025,7 +1022,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUpgrade2
 )
 :tryAutoUpgrade2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Get unsignedTransaction thành công
 echo ==========
 echo Step 2: Get Signature
@@ -1055,7 +1052,7 @@ if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 rem Find signTransaction
 echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.─── Find signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
 echo.└──── Get signTransaction thành công
@@ -1070,7 +1067,7 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
 :tryAutoUpgrade5
 echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Find stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Get stageTransaction thành công
@@ -1096,7 +1093,7 @@ if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto upgrade fa
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo.└── Find txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
@@ -1118,8 +1115,7 @@ set /p _temp=<_temp.txt
 set /a _temp=%_temp% 2>nul
 rem Get the current block
 echo.───── Get the current block ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 set /a _tempBlockEnd=%_9cscanBlock%+%_temp%
 if %_slot% == 1 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block: %_tempBlockEnd%,slot1_item: \"%_itemA%\",slot2_id,slot2_type,slot2_block,slot2_item,slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
 if %_slot% == 2 (jq "{block9cscan:%_9cscanBlock%,slot1_id,slot1_type,slot1_block,slot1_item,slot2_id,slot2_type,slot2_block: %_tempBlockEnd%,slot2_item: \"%_itemA%\",slot3_id,slot3_type,slot3_block,slot3_item,slot4_id,slot4_type,slot4_block,slot4_item}" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> _tempInfoSlot.json)
@@ -1142,4 +1138,24 @@ goto:eof
 set /a _node+=1
 if %_node% gtr 5 (set /a _node=1)
 echo Node %_node% will be used
+goto:eof
+:getBlockNow
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+findstr /i Micro _9cscanBlock.txt> nul
+if %errorlevel% equ 0 (echo.└── Error 0.1: Server timeout & echo.─── wait 10 seconds after trying again, ... & %_cd%\data\flashError.exe & timeout 10 & goto :getBlockNow)
+findstr /i Internal _9cscanBlock.txt> nul
+if %errorlevel% equ 0 (echo.└── Error 0.2: Error server & echo.─── wait 5 minutes after trying again, ... & %_cd%\data\flashError.exe & timeout 300 & goto :getBlockNow)
+set /a _9cscanBlock=%_9cscanBlock%
+set "var="&for /f "delims=0123456789" %%i in ("%_9cscanBlock%") do set var=%%i
+if defined var (echo.─── try again ... & goto :getBlockNow)
+goto:eof
+:sendInputGraphql
+set _tempInputGraphql=%1
+set /a _tempInputGraphq2=0
+:sendInputGraphql1
+set /a _tempInputGraphq2+=1
+curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > %_tempInputGraphql% 2>nul
+findstr /i message %_tempInputGraphql%>nul
+if %_tempInputGraphq2% gtr 50 (echo.Error 1: Unknown error ... & %_cd%\data\flashError.exe & color 4F & timeout /t 600 /nobreak & goto:eof)
+if %errorlevel% == 0 (echo.Có thể node %_node% quá tải & call :changeNode & goto :sendInputGraphql1)
 goto:eof

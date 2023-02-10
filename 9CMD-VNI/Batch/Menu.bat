@@ -6,7 +6,7 @@ call :background
 curl http://api.tanvpn.tk/vni/news --ssl-no-revoke --location > %_cd%\user\_temp.json 2>nul
 %_cd%\batch\jq.exe -r ".news" %_cd%\user\_temp.json > %_cd%\user\_temp.bat 2>nul
 call %_cd%\user\_temp.bat
-%_cd%\batch\jq.exe -r "if .version != \"0.9.2\" then \"Đã có phiên bản mới!\nDownload tại:\n─── https://github.com/tandotbt/9CMD\" else empty end" %_cd%\user\_temp.json
+%_cd%\batch\jq.exe -r "if .version != \"0.9.3\" then \"Đã có phiên bản mới!\nDownload tại:\n─── https://github.com/tandotbt/9CMD\" else empty end" %_cd%\user\_temp.json
 del /q %_cd%\user\_temp.json %_cd%\user\_temp.bat
 echo [1] Bạn đã nhập file UTC chưa?
 echo [2] Tính năng
@@ -14,7 +14,7 @@ echo [3] Giới thiệu
 echo.[4] Hướng dẫn sử dụng
 echo.
 echo.       Một sản phẩm make color :v
-echo.        === Phiên bản: [0.9.2] ===
+echo.        === Phiên bản: [0.9.3] ===
 choice /c 1234 /n /m "Nhập từ bàn phím: "
 if %errorlevel% == 1 (call %_cd%\Batch\enterUTC.bat)
 if %errorlevel% == 2 (goto :tinhNang)

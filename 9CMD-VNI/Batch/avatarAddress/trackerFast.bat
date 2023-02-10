@@ -46,8 +46,7 @@ copy "%_cd%\_cd.txt" "%_cd%\user\trackedAvatar\%_folderVi%\_cd.txt">nul
 rem Lấy block hiện tại
 echo.└──── Lấy block hiện tại ...
 cd %_cd%\user\trackedAvatar\%_folderVi%
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 rem Nhận dữ liệu nhân vật
 echo.└──── Lấy thông tin tất cả nhân vật ...
 cd %_cd%\batch\avatarAddress
@@ -62,10 +61,11 @@ echo.└──── Lấy số AP tiêu hao theo mức Stake ...
 cd %_cd%\user\trackedAvatar\%_folderVi%
 echo {"query":"query{stateQuery{stakeStates(addresses:\"%_vi%\"){deposit}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r ".data.stateQuery.stakeStates|.[]|if . == null then 5 else (.deposit|tonumber|if . >= 500000 then 3 elif . >= 5000 then 4 else 5 end) end" output.json > _stakeAP.txt 2>nul
 set /p _stakeAP=<_stakeAP.txt
+set /a _stakeAP=%_stakeAP% 2>nul
 rem Xóa file nháp input và output
 del /q %_cd%\user\trackedAvatar\%_folderVi%\input.json 2>nul
 del /q %_cd%\user\trackedAvatar\%_folderVi%\output.json 2>nul
@@ -109,7 +109,7 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%
 set /p _AddressChar=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_AddressChar%\"){actionPoint,dailyRewardReceivedIndex,level,stageMap{count}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 "%_cd%\batch\jq.exe" -r "..|.count?|select(.)" output.json > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_stage.txt 2>nul
 echo.└────── Lấy AP và thời gian refill AP ...
@@ -743,7 +743,7 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\
 rem Kiểm tra số lượng AP potion
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{items(inventoryItemId:500000){id,itemType,count}}}}}"} > input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r ".data.stateQuery.avatar.inventory.items|(if ([.[].count]|add) == null then 0 else ([.[].count]|add) end)" output.json > _countAPPotion.txt 2>nul
 set /p _countAPPotion=<_countAPPotion.txt
@@ -768,7 +768,7 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_vi%\"){crystal}}goldBalance(address: \"%_vi%\" )}"} > input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe "..|.crystal?|select(.)|tonumber" output.json > _crystal.txt 2>nul
 %_cd%\batch\jq.exe "..|.goldBalance?|select(.)|tonumber" output.json > _ncg.txt 2>nul
@@ -1002,7 +1002,7 @@ echo.└── Đang lấy dữ liệu Equipped ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
+call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterEQUIPPED.txt output1.json> output2.json 2>nul
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
@@ -1066,7 +1066,7 @@ echo.└── Đang lấy dữ liệu Weapon ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
+call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output1.json> output2.json 2>nul
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
@@ -1080,8 +1080,7 @@ rem Xóa file nháp input và output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiWeapon1
 echo.└── Lấy block hiện tại ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Weapon
@@ -1168,7 +1167,7 @@ echo.└── Đang lấy dữ liệu Armor ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
+call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterARMOR.txt output1.json> output2.json 2>nul
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
@@ -1182,8 +1181,7 @@ rem Xóa file nháp input và output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiArmor1
 echo.└── Lấy block hiện tại ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Armor
@@ -1270,7 +1268,7 @@ echo.└── Đang lấy dữ liệu Belt ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
+call :sendInputGraphql output1.json
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output1.json> output2.json 2>nul
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
 %_cd%\batch\jq.exe -r "group_by(.id)|.[]|select(length == 2)" output3.json> output4.json 2>nul
@@ -1283,8 +1281,7 @@ rem Xóa file nháp input và output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiBelt1
 echo.└── Lấy block hiện tại ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Belt
@@ -1371,7 +1368,7 @@ echo.└── Đang lấy dữ liệu Necklace ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
+call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterNECKLACE.txt output1.json> output2.json 2>nul
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
@@ -1385,8 +1382,7 @@ rem Xóa file nháp input và output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiNecklace1
 echo.└── Lấy block hiện tại ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Necklace
@@ -1477,7 +1473,7 @@ echo.└── Đang lấy dữ liệu Ring1 ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
+call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output1.json> output2.json 2>nul
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
@@ -1491,8 +1487,7 @@ rem Xóa file nháp input và output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing11
 echo.└── Lấy block hiện tại ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Ring1
@@ -1592,7 +1587,7 @@ echo.└── Đang lấy dữ liệu Ring2 ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output1.json 2>nul
+call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterRING.txt output1.json> output2.json 2>nul
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterStageUnlockAndLevelReq.txt output2.json> output3.json 2>nul
@@ -1606,8 +1601,7 @@ rem Xóa file nháp input và output
 del /q input.json output.json output1.json output2.json output3.json output4.json output5.json 2>nul
 :importTrangBiRing21
 echo.└── Lấy block hiện tại ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 call :background3
 echo.
 echo.Làm mới trang web để áp dụng bộ trang bị Ring2
@@ -1990,6 +1984,10 @@ echo {"vi":"%_vi%"}> _vi.json
 "%_cd%\batch\jq.exe" -r ".vi|ascii_downcase" _vi.json> _viLowcase.txt 2>nul & set /p _viLowcase=<_viLowcase.txt
 del /q _vi.json & del /q _viLowcase.txt
 curl --ssl-no-revoke --header "Content-Type: application/json" https://api.tanvpn.tk/donater?vi=%_viLowcase%> _KtraDonater.json 2>nul
+findstr /i Micro _KtraDonater.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout 10 & goto :settingAuto)
+findstr /i Internal _KtraDonater.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.2: Lỗi server & echo.─── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout 300 & goto :settingAuto)
 findstr /i %_viLowcase% _KtraDonater.json>nul
 if %errorlevel%==1 (set /a _HanSuDung=0 & goto :premium1)
 "%_cd%\batch\jq.exe" -r ".[].block-%_9cscanBlock%" _KtraDonater.json> _HanSuDung.txt 2>nul
@@ -2045,6 +2043,22 @@ if %errorlevel%==1 (del /q %_cd%\user\trackedAvatar\%_folderVi%\premium\_NCGtick
 if %_NCGbuy% lss %_pricePremium% (color 4F & echo. & echo Lỗi 2.6: Premium code gửi NCG nhỏ hơn [41;33m%_pricePremium% NCG[41;97m, & echo.thử lại ... & timeout 5 & goto :premium)
 del /q %_cd%\user\trackedAvatar\%_folderVi%\premium\_NCGbuy.json
 set /a _premiumTXOK=1
+rem Kích hoạt donater
+echo.└── Đang kích hoạt Donater ...
+echo {"vi":"%_vi%","premiumTX":"%_premiumTX%"}> input.json 2>nul
+curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/ActivateDonater --ssl-no-revoke --location> output.json 2>nul
+findstr /i Micro output.json> nul
+if %errorlevel% equ 0 (echo.───── Lỗi 0.1: Quá thời gian chờ & echo.───── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout 10 & goto :settingAuto)
+findstr /i Internal output.json> nul
+if %errorlevel% equ 0 (echo.───── Lỗi 0.2: Lỗi server & echo.───── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout 300 & goto :settingAuto)
+findstr /i kqua output.json> nul
+if %errorlevel% equ 1 (color 4F & echo.───── Lỗi 0: Không xác định & echo.───── đợi 10s sau thử lại, ... & timeout 10 & goto :settingAuto)
+%_cd%\batch\jq.exe -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
+%_cd%\batch\jq.exe -r ".kqua" output.json> _kqua.txt 2>nul & set /p _kqua=<_kqua.txt
+if %_checkqua% == 0 (echo.───── %_kqua% & echo.───── đợi 10s sau thử lại, ... & timeout 10 & goto :settingAuto)
+echo.───── %_kqua%
+timeout 2 >nul
+del /q input.json output.json _checkqua.txt _kqua.txt
 goto :settingAuto
 :ktraDonater
 rem Kiểm tra ví có là donater hay không
@@ -2054,6 +2068,10 @@ echo {"vi":"%_vi%"}> _vi.json
 "%_cd%\batch\jq.exe" -r ".vi|ascii_downcase" _vi.json> _viLowcase.txt 2>nul & set /p _viLowcase=<_viLowcase.txt
 del /q _vi.json & del /q _viLowcase.txt
 curl --ssl-no-revoke --header "Content-Type: application/json" https://api.tanvpn.tk/donater?vi=%_viLowcase%> _KtraDonater.json 2>nul
+findstr /i Micro _KtraDonater.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout 10 & goto :settingAuto)
+findstr /i Internal _KtraDonater.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.2: Lỗi server & echo.─── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout 300 & goto :settingAuto)
 findstr /i %_viLowcase% _KtraDonater.json>nul
 if %errorlevel%==1 (echo. & echo Lỗi 1: Bạn chưa là Donater, thử lại ... & del /q _KtraDonater.json & color 4F & timeout 5 & goto :premium)
 "%_cd%\batch\jq.exe" -r ".[].block-%_9cscanBlock%" _KtraDonater.json> _HanSuDung.txt 2>nul
@@ -2063,7 +2081,7 @@ goto :settingAuto
 :_NCGbuyi
 rem Tìm ra số NCG trong Premium code
 if %_NCGbuyi%==8 echo %*> _NCGticker.txt 2>nul
-if %_NCGbuyi%==10 echo %*> _NCGbuy.txt 2>nul & set /p _NCGbuy=<_NCGbuy.txt & set /a _NCGbuy=%_NCGbuy:~0,-2% & del /q _NCGbuy.txt
+if %_NCGbuyi%==10 echo %*> _NCGbuy.txt 2>nul & set /p _NCGbuy=<_NCGbuy.txt & set /a _NCGbuy=%_NCGbuy:~0,-2% 2>nul & del /q _NCGbuy.txt
 set /a _NCGbuyi+=1
 exit /b
 :autoRefillAP
@@ -2081,9 +2099,9 @@ rem Kiểm tra những giao dịch trước có thành công hay không
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
-echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+REM echo.
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=daily_reward6^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
@@ -2092,11 +2110,13 @@ echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCo
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/refillAP --ssl-no-revoke --location> output.json 2>nul
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+findstr /i Internal output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.2: Lỗi server & echo.─── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 300 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
 if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul & set /p _kqua=<_kqua.txt
-if %_checkqua% == 0 (echo.└── %_kqua%, ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2121,7 +2141,7 @@ if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoRefillAP
 echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
 echo.└──── Nhận signTransaction thành công
@@ -2131,7 +2151,7 @@ echo.
 set /p _signTransaction=<_signTransaction.txt
 echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
@@ -2154,7 +2174,7 @@ if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Refill AP 
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
@@ -2183,9 +2203,9 @@ echo Bước 0: Kiểm tra những lệnh Sweep trước
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep9^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
-echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep9^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+REM echo.
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash_sweep9^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
@@ -2205,6 +2225,8 @@ echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCo
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/autoSweep --ssl-no-revoke --location> output.json 2>nul
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+findstr /i Internal output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.2: Lỗi server & echo.─── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 300 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
 if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
@@ -2215,7 +2237,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoSweep1
 )
 :autoSweep1
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2245,7 +2267,7 @@ if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoSweep
 echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
 echo.└──── Nhận signTransaction thành công
@@ -2260,7 +2282,7 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
 :autoSweep3
 echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
@@ -2283,7 +2305,7 @@ if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Sweep th�
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
@@ -2337,14 +2359,13 @@ goto :autoRepeat4
 echo Level nhân vật	:	%_level%
 echo Đã chọn bộ đồ	:	888888.json
 echo.└── Lấy block hiện tại ...
-curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
-set /a _9cscanBlock=%_9cscanBlock%
+call :getBlockNow
 echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json
 echo.└── Đang lấy dữ liệu trang bị ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 echo.───── Đang chọn Weapon ...
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterWEAPON.txt output.json> output11.json 2>nul
@@ -2537,9 +2558,9 @@ echo Bước 0: Kiểm tra những lệnh Repeat trước
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash20^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
-echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash20^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+REM echo.
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=hack_and_slash20^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
@@ -2560,7 +2581,8 @@ set _world=%_world: =%
 echo.└── Kiểm tra world %_world% ...
 if %_world% equ 1 (echo.─── World %_world% đã mở & goto :skipOpenWorld)
 echo {"query":"query{stateQuery{unlockedWorldIds(avatarAddress:\"%_address%\")}}"} > input.json
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql 2>nul| jq -r "[.data.stateQuery.unlockedWorldIds|.[]|inside("%_world%")]|any" | findstr /i true>nul
+call :sendInputGraphql output.json
+jq -r "[.data.stateQuery.unlockedWorldIds|.[]|inside("%_world%")]|any" output.json 2>nul| findstr /i true>nul
 if %errorlevel% equ 0 (echo.─── World %_world% đã mở & goto :skipOpenWorld)
 call :autoOpenWorld & goto :duLieuViCu
 :skipOpenWorld
@@ -2574,6 +2596,8 @@ echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCo
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/ClimbingChilling --ssl-no-revoke --location> output.json 2>nul
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+findstr /i Internal output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.2: Lỗi server & echo.─── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 300 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
 if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
@@ -2584,7 +2608,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :autoRepeat5
 )
 :autoRepeat5
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2613,7 +2637,7 @@ if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :autoRepeat7
 echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
 echo.└──── Nhận signTransaction thành công
@@ -2628,7 +2652,7 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
 :autoRepeat8
 echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
@@ -2652,7 +2676,7 @@ if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto Repeat th�
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
@@ -2674,7 +2698,7 @@ echo.└── Đang auto mở World %_world%
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_vi%\"){crystal}}goldBalance(address: \"%_vi%\" )}"} > input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 jq "..|.crystal?|select(.)|tonumber" output.json > _crystal.txt 2>nul
 jq "..|.goldBalance?|select(.)|tonumber" output.json > _ncg.txt 2>nul
@@ -2716,7 +2740,7 @@ echo ==========
 echo Bước 1: Nhận unlockWorld và nextTxNonce
 echo {"query":"query{actionQuery{unlockWorld(avatarAddress:\"%_address%\",worldIds:%_world%)}transaction{nextTxNonce(address:\"%_vi%\")}}"} > input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 echo.└── Tìm unlockWorld ...
 jq -r "..|.unlockWorld?|select(.)" output.json > _unlockWorld.txt 2>nul
@@ -2729,7 +2753,7 @@ echo ==========
 echo Bước 2: Nhận unsignedTransaction
 echo {"query":"query{transaction{unsignedTransaction(publicKey:\"%_publickey%\",plainValue:\"%_unlockWorld%\",nonce:%_nextTxNonce%)}}"} > input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 echo.└── Tìm unsignedTransaction ...
 %_cd%\batch\jq.exe -r "..|.unsignedTransaction?|select(.)" output.json> _unsignedTransaction.txt 2>nul
@@ -2766,7 +2790,7 @@ if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryOpenWorld4
 echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
 echo.└──── Nhận signTransaction thành công
@@ -2781,7 +2805,7 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
 :tryOpenWorld5
 echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
@@ -2804,7 +2828,7 @@ if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto open World
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
@@ -2827,7 +2851,7 @@ echo.└── Đang auto sử dụng AP potion nhân vật %_name% ...
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{items(inventoryItemId:500000){id,itemType,count}}}}}"} > input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json 2>nul
+call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu
 jq -r ".data.stateQuery.avatar.inventory.items|(if ([.[].count]|add) == null then 0 else ([.[].count]|add) end)" output.json > _countAPPotion.txt 2>nul
 set /p _countAPPotion=<_countAPPotion.txt
@@ -2847,9 +2871,9 @@ echo Bước 0: Kiểm tra những lệnh use AP potion trước
 curl https://api.9cscan.com/accounts/%_vi%/transactions?action=charge_action_point3^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
-echo.
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=charge_action_point3^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
-if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+REM echo.
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=charge_action_point3^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
@@ -2858,6 +2882,8 @@ echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCo
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/useAPpotion --ssl-no-revoke --location> output.json 2>nul
 findstr /i Micro output.json> nul
 if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 10 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+findstr /i Internal output.json> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.2: Lỗi server & echo.─── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 300 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 findstr /i kqua output.json> nul
 if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
@@ -2868,7 +2894,7 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
   goto :tryAutoUseAPpotion2
 )
 :tryAutoUseAPpotion2
-if %_checkqua% == 0 (echo.└── %_kqua% ... & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
@@ -2896,7 +2922,7 @@ if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryAutoUseAPpotion4
 echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
 jq -r "..|.signTransaction?|select(.)" output.json> _signTransaction.txt 2>nul
 echo.└──── Nhận signTransaction thành công
@@ -2911,7 +2937,7 @@ for %%A in (_signTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do
 :tryAutoUseAPpotion5
 echo {"query":"mutation{stageTransaction(payload:\"%_signTransaction%\")}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json  2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm stageTransaction ...
 jq -r "..|.stageTransaction?|select(.)" output.json> _stageTransaction.txt 2>nul
 echo.└──── Nhận stageTransaction thành công
@@ -2934,7 +2960,7 @@ if %_countKtraStaging% gtr 50 (color 8F & echo.─── Status: Auto use AP pot
 set /p _stageTransaction=<_stageTransaction.txt
 echo {"query":"query{transaction{transactionResult(txId:\"%_stageTransaction%\"){txStatus}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
-curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql> output.json 2>nul
+call :sendInputGraphql output.json
 echo.└── Tìm txStatus ...
 jq -r "..|.txStatus?|select(.)" output.json> _txStatus.txt 2>nul
 set /p _txStatus=<_txStatus.txt
@@ -2950,4 +2976,24 @@ goto:eof
 set /a _node+=1
 if %_node% gtr 5 (set /a _node=1)
 echo Node %_node% sẽ được sử dụng
+goto:eof
+:getBlockNow
+curl https://api.tanvpn.tk/blockNow --ssl-no-revoke --location > _9cscanBlock.txt 2>nul & set /p _9cscanBlock=<_9cscanBlock.txt
+findstr /i Micro _9cscanBlock.txt> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.1: Quá thời gian chờ & echo.─── đợi 10s sau thử lại, ... & %_cd%\data\flashError.exe & timeout 10 & goto :getBlockNow)
+findstr /i Internal _9cscanBlock.txt> nul
+if %errorlevel% equ 0 (echo.└── Lỗi 0.2: Lỗi server & echo.─── đợi 5p sau thử lại, ... & %_cd%\data\flashError.exe & timeout 300 & goto :getBlockNow)
+set /a _9cscanBlock=%_9cscanBlock% 2>nul
+set "var="&for /f "delims=0123456789" %%i in ("%_9cscanBlock%") do set var=%%i
+if defined var (echo.─── thử lại ... & goto :getBlockNow)
+goto:eof
+:sendInputGraphql
+set _tempInputGraphql=%1
+set /a _tempInputGraphq2=0
+:sendInputGraphql1
+set /a _tempInputGraphq2+=1
+curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > %_tempInputGraphql% 2>nul
+findstr /i message %_tempInputGraphql%>nul
+if %_tempInputGraphq2% gtr 50 (echo.Lỗi 1: Lỗi không xác định ... & %_cd%\data\flashError.exe & color 4F & timeout /t 600 /nobreak & goto:eof)
+if %errorlevel% == 0 (echo.Có thể node %_node% quá tải & call :changeNode & goto :sendInputGraphql1)
 goto:eof

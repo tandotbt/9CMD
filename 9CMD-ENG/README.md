@@ -25,13 +25,12 @@ Request:
 
 ==========
 
-Thay đổi v0.9.2:
+Change v0.9.3:
 - Change how to get the current block
-- Change how to get AP by Stake
-- Change how to change node from 1 to 5 instead of fixed 1
-- Change step 0 of Sweep and Repeat
-- Change the waiting time 3600 seconds to 600 seconds :v
-- Fix Open World
+- Change how to get data from node
+- Add activation Donater
+- Remove Success checking steps
+- Upgrade Planet
 
 ==========
 
