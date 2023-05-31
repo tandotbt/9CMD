@@ -5,13 +5,12 @@ TOoL cHo CHín cÊ
 
 Sử dụng:
 - Chạy file 9CMD.bat đầu tiên, làm theo hướng dẫn và nhấn số từ bàn phím để tiếp tục...
-- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 - User Guide for 9CMD: https://9cmd.tanvpn.tk/
 
 ==========
 
 Tính năng:
-- Dễ dàng gửi NCG/Crystal qua GraphQL (tham khảo thao tác chân tại đây: https://youtu.be/Rq8iLjdfIjY)
+- Dễ dàng gửi NCG qua GraphQL
 - Theo dõi Avatar - Kiểm tra NCG và Crystal nhanh
 - Thông báo khi có thể refill AP
 - [Donater / Premium code] Auto refill AP khi nhân vật còn 0 AP
@@ -26,11 +25,8 @@ Yêu cầu:
 
 ==========
 
-Thay đổi v0.9.3:
-- Thay đổi cách lấy block hiện tại
-- Thay đổi cách lấy dữ liệu từ node
-- Thêm kích hoạt Donater
-- Bỏ bước kiểm tra success
+Thay đổi v0.9.4:
+- Sửa vài lỗi nhỏ
 - Nâng cấp planet
 
 ==========

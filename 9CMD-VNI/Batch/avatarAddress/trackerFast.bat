@@ -231,7 +231,7 @@ set "_temp="
 set _temp=%_howManyTurn%
 if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
 set /a _howManyAP=%_stakeAP%*%_temp%
-if %_canAutoOnOff% == 1 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoSweep & goto :duLieuViCu)))))
+if %_canAutoOnOff% == 1 (if %_canAuto% == 5 (if %_autoSweepOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 1 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoSweep & goto :duLieuViCu))))))
 if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar2)
 rem Thử auto Repeat
 set _charCount=1
@@ -242,8 +242,8 @@ set "_temp="
 set _temp=%_howManyTurn%
 if %_howManyTurn% == 0 (set /a _temp=%_actionPoint%/%_stakeAP%)
 set /a _howManyAP=%_stakeAP%*%_temp%
-if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_autoUseAPPotionOnOff% == 1 (if %_actionPoint% lss %_stakeAP% (call :tryAutoUseAPpotion & goto :duLieuViCu)))))
-if %_canAutoOnOff% == 1 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoRepeat & goto :duLieuViCu)))))
+if %_canAutoOnOff% == 1 (if %_canAuto% == 5 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_autoUseAPPotionOnOff% == 1 (if %_actionPoint% lss %_stakeAP% (call :tryAutoUseAPpotion & goto :duLieuViCu))))))
+if %_canAutoOnOff% == 1 (if %_canAuto% == 5 (if %_autoRepeatOnOffAll% == 1 (if %_autoSweepRepeatOnOffChar% == 2 (if %_howManyAP% leq %_actionPoint% (if %_actionPoint% geq %_stakeAP% (call :autoRepeat & goto :duLieuViCu))))))
 if %_charCount% lss %_length% (set /a _charCount+=1 & goto :displayChar3)
 if %_hdsdRepeat% == 1 (echo [40;95mKiểu Repeat[40;96m / [40;94mAuto Open World [40;93mAuto AP potion [40;92mRepert x turn[40;96m) else (echo.)
 echo.[40;96m==========
@@ -1000,7 +1000,7 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
 :importTrangBiEquippedMain
 echo.└── Đang lấy dữ liệu Equipped ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
@@ -1064,7 +1064,7 @@ if %_chuyendoi% == 2 (
 :importTrangBiWeaponMain
 echo.└── Đang lấy dữ liệu Weapon ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
@@ -1165,7 +1165,7 @@ if %_chuyendoi% == 2 (
 :importTrangBiArmorMain
 echo.└── Đang lấy dữ liệu Armor ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
@@ -1266,7 +1266,7 @@ if %_chuyendoi% == 2 (
 :importTrangBiBeltMain
 echo.└── Đang lấy dữ liệu Belt ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output1.json
 %_cd%\batch\jq.exe -r -f %_cd%\data\avatarAddress\filterBELT.txt output1.json> output2.json 2>nul
@@ -1366,7 +1366,7 @@ if %_chuyendoi% == 2 (
 :importTrangBiNecklaceMain
 echo.└── Đang lấy dữ liệu Necklace ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
@@ -1471,7 +1471,7 @@ if %_chuyendoi% == 2 (
 :importTrangBiRing1Main
 echo.└── Đang lấy dữ liệu Ring1 ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
@@ -1585,7 +1585,7 @@ if %_chuyendoi% == 2 (
 :importTrangBiRing2Main
 echo.└── Đang lấy dữ liệu Ring2 ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output1.json
 rem Lọc kết quả lấy dữ liệu
@@ -2363,7 +2363,7 @@ call :getBlockNow
 echo {"weapon":"","armor":"","belt":"","necklace":"","ring1":"","ring2":""}> %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\equipment\888888.json
 echo.└── Đang lấy dữ liệu trang bị ...
 set /p _address=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\_address.txt
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_address%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 rem Lọc kết quả lấy dữ liệu

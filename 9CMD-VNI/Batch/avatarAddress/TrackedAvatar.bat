@@ -164,7 +164,7 @@ if [%_pick%] == [] (echo Lỗi 1: Chưa nhập gì, thử lại... && color 4F &
 set "var="&for /f "delims=0123456789" %%i in ("%_pick%") do set var=%%i
 if defined var (echo Lỗi 2: Sai cú pháp, thử lại... && color 4F && timeout 3 & set "_pick=" & goto :done)
 if "%_pick%"=="0" (del /q %_cd%\batch\avatarAddress\_temp.json & call %_cd%\batch\avatarAddress\AddressToJson.bat & copy %_cd%\user\avatarAddress\oldData.json %_cd%\batch\avatarAddress\oldData.json & set "_pick=" & goto :TheoDoiAvatar)
-if %_pick%==100 (del /q %_cd%\batch\avatarAddress\_temp.json & set "_pick=" & start %_cd%\batch\SendCurrency.bat & goto :done)
+if %_pick%==100 (set "_pick=" & start %_cd%\batch\SendCurrency.bat & goto :done)
 if %_pick%==200 (more %_cd%\batch\avatarAddress\_temp.json & set "_pick=" & goto :done)
 if %_pick%==300 (set "_pick=" & goto :openFull)
 if %_pick%==400 (del /q %_cd%\batch\avatarAddress\_temp.json & set "_pick=" & call %_cd%\batch\Menu.bat)

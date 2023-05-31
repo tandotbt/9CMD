@@ -816,7 +816,7 @@ if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryAutoCraft4
 echo.└── Export the list of items before craft
 rem Capture the list of items before and after
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 jq "[.data.stateQuery.avatar.inventory.equipments|.[]]" output.json > before.json
@@ -887,7 +887,7 @@ goto :autoCraftEditSlotFAILURE_2
 echo.└──── Save Slot information blocks %_slot% ...
 echo.───── Export the list of items after craft
 rem Save the list of items before and after
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 jq "[.data.stateQuery.avatar.inventory.equipments|.[]]" output.json > after.json
@@ -971,10 +971,10 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\autoUpgrade
 copy "%_cd%\batch\jq.exe" "jq.exe"> nul
 jq -r "\"─── \(.type) \(.grade) grade from level \(.levelUp) up \(.levelUp+1)\n─── with element \(if .ele1 == 1 then \"Fire\" elif .ele1 == 2 then \"Water\" elif .ele1 == 3 then \"Land\" elif .ele1 == 4 then \"Wind\" else \"Normal\" end) to \(if .ele2 == 1 then \"Fire\" elif .ele2 == 2 then \"Water\" elif .ele2 == 3 then \"Land\" elif .ele2 == 4 then \"Wind\" else \"Normal\" end)\"" %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoUpgrade.json
 echo.─── Choose 2 equipment with the highest and lowest CP ...
-echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{value,type}}}}}}"}> input.json 2>nul
+echo {"query":"query{stateQuery{avatar(avatarAddress:\"%_char%\"){inventory{equipments{grade,id,itemSubType,elementalType,equipped,itemId,level,statsMap{aTK,hP,dEF,sPD,hIT,cRI},skills{elementalType,chance,power},stat{baseValue,statType}}}}}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
-echo ^".data.stateQuery.avatar.inventory.equipments^|.[]^|select(.itemSubType == ^\^"^\(.type^|ascii_upcase)^\^")^|select(.grade == ^\(.grade))^|select(.level == ^\(.levelUp))^|select(((if .elementalType == ^\^"WIND^\^" then 4 elif .elementalType == ^\^"LAND^\^" then 3 elif .elementalType == ^\^"WATER^\^" then 2 elif .elementalType == ^\^"FIRE^\^" then 1 else 0 end) ^>= ^\(.ele1))and(if .elementalType == ^\^"WIND^\^" then 4 elif .elementalType == ^\^"LAND^\^" then 3 elif .elementalType == ^\^"WATER^\^" then 2 elif .elementalType == ^\^"FIRE^\^" then 1 else 0 end) ^<= ^\(.ele2))^|{itemId,stat: (.stat.value),CP: (if .skills != [] then (.statsMap^|(.hP*0.7+.aTK*10.5+.dEF*10.5+.sPD*3+.hIT*2.3)*1.15^|round) else (.statsMap^|.hP*0.7+.aTK*10.5+.dEF*10.5+.sPD*3+.hIT*2.3^|round) end)}^"> _filter1.txt 2>nul
+echo ^".data.stateQuery.avatar.inventory.equipments^|.[]^|select(.itemSubType == ^\^"^\(.type^|ascii_upcase)^\^")^|select(.grade == ^\(.grade))^|select(.level == ^\(.levelUp))^|select(((if .elementalType == ^\^"WIND^\^" then 4 elif .elementalType == ^\^"LAND^\^" then 3 elif .elementalType == ^\^"WATER^\^" then 2 elif .elementalType == ^\^"FIRE^\^" then 1 else 0 end) ^>= ^\(.ele1))and(if .elementalType == ^\^"WIND^\^" then 4 elif .elementalType == ^\^"LAND^\^" then 3 elif .elementalType == ^\^"WATER^\^" then 2 elif .elementalType == ^\^"FIRE^\^" then 1 else 0 end) ^<= ^\(.ele2))^|{itemId,stat: (.stat.baseValue),CP: (if .skills != [] then (.statsMap^|(.hP*0.7+.aTK*10.5+.dEF*10.5+.sPD*3+.hIT*2.3)*1.15^|round) else (.statsMap^|.hP*0.7+.aTK*10.5+.dEF*10.5+.sPD*3+.hIT*2.3^|round) end)}^"> _filter1.txt 2>nul
 jq -r -f _filter1.txt %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoUpgrade.json> _filter2.txt 2>nul
 jq -c -f _filter2.txt output.json> output2.json 2>nul
 jq -c "(if (.slot1_block > %_9cscanBlock%) then {itemId: .slot1_item} else empty end),(if (.slot2_block > %_9cscanBlock%) then {itemId: .slot2_item} else empty end),(if (.slot3_block > %_9cscanBlock%) then {itemId: .slot3_item} else empty end),(if (.slot4_block > %_9cscanBlock%) then {itemId: .slot4_item} else empty end)"  %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_infoSlot.json> output3.json 2>nul

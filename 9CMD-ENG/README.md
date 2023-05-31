@@ -5,13 +5,12 @@ TOoL fOR nINe CHrOnicleS
 
 How to use:
 - Run first 9cmd.bat file, follow the instructions and press number from the keyboard to continue...
-- Tutorial Send currency: https://youtu.be/ehEWSs3P4JM
 - User Guide for 9CMD: https://9cmd.tanvpn.tk/
 
 ==========
 
 Feature:
-- Easy to send NCG/Crystal via Graphql (Refer here: https://youtu.be/Rq8iLjdfIjY)
+- Easy to send NCG via Graphql
 - Tracked Avatar - Check NCG and Crystal quickly
 - [Donater / Premium code] Auto refill AP when the character has 0 AP
 - [Donater / Premium code] Auto Sweep for each character
@@ -25,11 +24,8 @@ Request:
 
 ==========
 
-Change v0.9.3:
-- Change how to get the current block
-- Change how to get data from node
-- Add activation Donater
-- Remove Success checking steps
+Change v0.9.4:
+- Fix minor bugs
 - Upgrade Planet
 
 ==========

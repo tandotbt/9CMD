@@ -1,3 +1,6 @@
+echo off
+chcp 65001
+cls
 rem Install %_cd% original
 set /p _cd=<_cd.txt
 cd %_cd%
