@@ -763,11 +763,11 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\autoCraft
 rem Check whether the previous transactions are successful or not
 echo ==========
 echo Step 0: Check the previous craft transaction
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment16^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 REM echo.
-REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment16^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
 REM if %errorlevel% equ 1 (color 4F & echo.└── Error 1: SUCCESS transactions are not found & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
 echo.└──── Complete step 0
 rem Send your information to my server

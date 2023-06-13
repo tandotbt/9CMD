@@ -739,11 +739,11 @@ cd %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\autoCraft
 rem Kiểm tra những giao dịch trước có thành công hay không
 echo ==========
 echo Bước 0: Kiểm tra những lệnh craft trước
-curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
+curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment16^&limit=6 --ssl-no-revoke 2>nul|jq -r ".transactions|.[].id"> _idCheckStatus.txt 2>nul
 set "_idCheckStatus="
 for /f "tokens=*" %%a in (_idCheckStatus.txt) do (curl https://api.9cscan.com/transactions/%%a/status --ssl-no-revoke)
 REM echo.
-REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment14^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
+REM curl https://api.9cscan.com/accounts/%_vi%/transactions?action=combination_equipment16^&limit=6 --ssl-no-revoke 2>nul | jq -r ".transactions|.[].status" | findstr -i success>nul
 REM if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy giao dịch SUCCESS & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
 echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
