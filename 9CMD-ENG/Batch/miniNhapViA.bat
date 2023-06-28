@@ -29,6 +29,7 @@ if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :batdau)
 echo %_viA%> %_cd%\user\_viA.txt
 rem Check balance
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
+echo Wait 10 seconds & timeout 10
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Filter the results of data

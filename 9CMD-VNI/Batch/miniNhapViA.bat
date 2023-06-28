@@ -29,6 +29,7 @@ if "%_viA%" == "open" (start %_cd%\planet\_allKey.txt & goto :batdau)
 echo %_viA%> %_cd%\user\_viA.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
+echo Chờ 10 giây & timeout 10
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 findstr /i errors output.json>nul
@@ -145,6 +146,7 @@ echo %_viA% > %_cd%\user\_viA.txt
 del /q %_cd%\planet\_allKey.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
+echo Chờ 10 giây & timeout 10
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Lọc kết quả lấy dữ liệu

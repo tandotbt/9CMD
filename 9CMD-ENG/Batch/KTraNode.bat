@@ -9,6 +9,7 @@ echo ==========
 echo Check node %_node%
 rem Assign variables to code
 echo {"query":"query{nodeStatus{preloadEnded}}"} > input.json
+echo Wait 10 seconds & timeout 10
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > %_cd%/data/_KTraNode.txt
 rem Delete file nháp input và output

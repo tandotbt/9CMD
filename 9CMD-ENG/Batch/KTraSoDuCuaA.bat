@@ -11,6 +11,7 @@ set _viA=%_viA: =%
 set _node=%_node: =%
 rem Assign variables to code
 echo {"query":"query{stateQuery{agent(address:\"%_viA%\"){crystal}}goldBalance(address: \"%_viA%\" )}"} > input.json
+echo Wait 10 seconds & timeout 10
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Filter the results of data

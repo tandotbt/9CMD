@@ -19,6 +19,7 @@ set _signTransaction=%_signTransaction: =%
 rem Set variable to code
 cd %_cd%\batch
 call %_cd%\batch\TaoInputJson.bat _signTransaction %_signTransaction% _codeStep4.txt > input.json
+echo Wait 10 seconds & timeout 10
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Filter the results of data

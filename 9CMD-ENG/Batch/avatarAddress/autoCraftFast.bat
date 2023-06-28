@@ -43,6 +43,10 @@ set /p _vi=<%_cd%\user\trackedAvatar\%_folderVi%\_vi.txt
 set /p _char=<%_cd%\user\trackedAvatar\vi%_countVi%\char%_countChar%\_address.txt
 set /p _name=<%_cd%\user\trackedAvatar\vi%_countVi%\char%_countChar%\_name.txt
 title Auto Craft Loop [%_countViStart% to %_countViEnd%] [%_countVi%][%_countChar%][%_name%]
+REM del set /p _char=<%_cd%\user\trackedAvatar\vi%_countVi%\char%_countChar%\_address.txt
+REM del	set /p _name=<%_cd%\user\trackedAvatar\vi%_countVi%\char%_countChar%\_name.txt
+REM if %_slot% lss 5 (goto :displayMenuAutoCraft2)
+REM set /a _countAutoCraftLoop+=1
 
 rem Create data saving folders
 set _folder="%_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft"
@@ -67,7 +71,6 @@ if exist %_file% (set /p _publickey=<%_cd%\user\trackedAvatar\%_folderVi%\auto\p
 rem Try to get the key ID
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\auto\KeyID\_KeyID.txt"
 if exist %_file% (set /p _KeyID=<%_cd%\user\trackedAvatar\%_folderVi%\auto\KeyID\_KeyID.txt & set /a _keyidOK=1)
-
 curl https://api.9cscan.com/account?address=%_vi% --ssl-no-revoke> _allChar.json 2>nul
 %_cd%\batch\jq.exe ".[%_countChar%]|del(.refreshBlockIndex)|del(.avatarAddress)|del(.address)|del(.goldBalance)|.[]|{address, name, level, actionPoint,timeCount: (.dailyRewardReceivedIndex+1700-%_9cscanBlock%)}" _allChar.json> _infoChar.json 2>nul
 %_cd%\batch\jq.exe "{sec: ((.timeCount*12)%%60),minute: ((((.timeCount*12)-(.timeCount*12)%%60)/60)%%60),hours: (((((.timeCount*12)-(.timeCount*12)%%60)/60)-(((.timeCount*12)-(.timeCount*12)%%60)/60%%60))/60)}" _infoChar.json> _infoCharAp.json 2>nul
@@ -104,9 +107,26 @@ set /p _stage=<_stage.txt
 if %_stage% == 0 (echo.Error 1.1: Opened stage not found & echo.the cause is node broken & echo.use next node and try again ... & %_cd%\data\flashError.exe & call :changeNode & color 4F & timeout 5 & goto :menuAutoCraftRefreshData)
 set /p _crystal=<_crystal.txt
 set /a _crystal=%_crystal% 2>nul
+:taoLinkJsonBlod
+rem Create a link URL where item data saves each char
+set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt"
+if exist %_file% (goto :ktraJsonBlob)
+echo.───── Create link jsonblob.com show items ...
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+curl -i -X "POST" -d "[{\"image\":\"\"}]" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob --ssl-no-revoke 2>nul|findstr /i location>nul> _temp.txt 2>nul
+set /p _temp=<_temp.txt
+echo %_temp:~43,19%> _urlJson.txt 2>nul & set "_temp=" & del /q _temp.txt 2>nul
+:ktraJsonBlob
+set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
+curl -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke 2>nul|%_cd%\batch\jq -s "flatten|.[0]|has(\"image\")"|findstr /i false>nul
+if %errorlevel% == 0 (
+	del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt 2>nul
+	rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\CheckItem
+	goto :taoLinkJsonBlod
+	)
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\CheckItem\"
 if exist %_folder% (goto :menuAutoCraftRefreshData1)
-rem Tạo file index.html
+rem Create file index.html
 echo.───── Create html file to see items ...
 xcopy "%_cd%\data\CheckItem2\" "%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\CheckItem\" >nul
 set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingSweep\_urlJson.txt
@@ -129,9 +149,10 @@ echo.───── Create file _infoSuperCraft.json ...
 echo {}> _infoSuperCraft.json
 :menuAutoCraftRefreshData31
 cd %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft
+:taoLinkJsonBlod2
 rem Find file _urlDataOnline.txt
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_urlDataOnline.txt"
-if exist %_file% (goto :menuAutoCraftRefreshData3)
+if exist %_file% (goto :ktraJsonBlob2)
 echo.───── Create link jsonblob.com ...
 %_cd%\batch\jq.exe -s -c "." _infoSuperCraft.json> _temp1.txt
 set /p _temp1=<_temp1.txt
@@ -148,6 +169,13 @@ set /p _temp1=<_temp1.txt
 curl -X "PUT" -d "@output.json" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlDataOnline% --ssl-no-revoke >nul 2>nul
 del /q output.json
 echo %_9cscanBlock% > _9cscanBlockSave.txt
+:ktraJsonBlob2
+set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_urlDataOnline.txt
+curl -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke 2>nul|%_cd%\batch\jq -s "flatten|.[0]|has(\"block9cscan\")"|findstr /i false>nul
+if %errorlevel% == 0 (
+	del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_urlDataOnline.txt 2>nul
+	goto :taoLinkJsonBlod2
+	)
 :menuAutoCraftRefreshData3
 cd %_cd%\User\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\_9cscanBlockSave.txt"
@@ -773,6 +801,16 @@ echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
 echo Step 1: Get unsignedTransaction
+echo.└── Step 1.1: Get nextTxNonce ...
+echo {"query":"query{transaction{nextTxNonce(address:\"%_vi%\")}}"} > input.json 2>nul
+rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Filter the results of data
+echo.└── Find nextTxNonce ...
+jq -r "..|.nextTxNonce?|select(.)" output.json > _nextTxNonce.txt 2>nul
+set /p _nextTxNonce=<_nextTxNonce.txt
+echo.└──── Get nextTxNonce successful
+echo.└── Step 1.2: Get kqua ...
 if "%_2temp%" equ "Premium" (set _tempBasicOrPre=1) else (set _tempBasicOrPre=0)
 set /a _temp5=%_slot%-1
 if "%_tempSuperCraft%" == "false" (goto :skipSuperCraftBasicOrPremium)
@@ -811,11 +849,25 @@ set /p _optionBlock1=<_optionBlock1.txt
 set /p _optionBlock2=<_optionBlock2.txt
 set /p _optionBlock3=<_optionBlock3.txt
 set /p _optionBlock4=<_optionBlock4.txt
+echo.└──── Get kqua successful
+echo.└── Step 1.3: Get unsignedTransaction ...
+echo {"query":"query{transaction{unsignedTransaction(publicKey:\"%_publickey%\",plainValue:\"%_kqua%\",nonce:%_nextTxNonce%)}}"} > input.json 2>nul
+rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Filter the results of data
+echo.└── Find unsignedTransaction ...
+%_cd%\batch\jq.exe -r "..|.unsignedTransaction?|select(.)" output.json> _unsignedTransaction.txt 2>nul
+rem Get value exceeding 1024 characters
+for %%A in (_unsignedTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
+  set "_unsignedTransaction=%%B"
+  goto :fixBanned1
+)
+:fixBanned1
 echo.└──── Get unsignedTransaction successful
 echo ==========
 echo Step 2: Get Signature
 rem Create Action File
-call certutil -decodehex _kqua.txt action >nul
+call certutil -decodehex _unsignedTransaction.txt action >nul
 echo.└── Using the previously saved password ...
 "%_cd%\planet\planet" key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_KeyID% action> _signature.txt 2>nul
 set "_signature="
@@ -843,7 +895,7 @@ rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 jq "[.data.stateQuery.avatar.inventory.equipments|.[]]" output.json > before.json
 rem Find signTransaction
-echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 echo.─── Find signTransaction ...
@@ -1027,6 +1079,16 @@ echo.└──── Complete step 0
 rem Send your information to my server
 echo ==========
 echo Step 1: Get unsignedTransaction
+echo.└── Step 1.1: Get nextTxNonce ...
+echo {"query":"query{transaction{nextTxNonce(address:\"%_vi%\")}}"} > input.json 2>nul
+rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Filter the results of data
+echo.└── Find nextTxNonce ...
+jq -r "..|.nextTxNonce?|select(.)" output.json > _nextTxNonce.txt 2>nul
+set /p _nextTxNonce=<_nextTxNonce.txt
+echo.└──── Get nextTxNonce successful
+echo.└── Step 1.2: Get kqua ...
 set /a _temp5=%_slot%-1
 echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_char%","stt":%_countChar%,"premiumTX":"%_premiumTX%","slotUpgrade":%_temp5%,"itemA":"%_itemA%","itemB":"%_itemB%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/UpgradeEquipment --ssl-no-revoke --location> output.json 2>nul
@@ -1045,11 +1107,25 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
 )
 :tryAutoUpgrade2
 if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── wait 10 minutes after try again, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Updating ... & goto:eof)
+echo.└──── Get kqua successful
+echo.└── Step 1.3: Get unsignedTransaction ...
+echo {"query":"query{transaction{unsignedTransaction(publicKey:\"%_publickey%\",plainValue:\"%_kqua%\",nonce:%_nextTxNonce%)}}"} > input.json 2>nul
+rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Filter the results of data
+echo.└── Find unsignedTransaction ...
+%_cd%\batch\jq.exe -r "..|.unsignedTransaction?|select(.)" output.json> _unsignedTransaction.txt 2>nul
+rem Get value exceeding 1024 characters
+for %%A in (_unsignedTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
+  set "_unsignedTransaction=%%B"
+  goto :fixBanned2
+)
+:fixBanned2
 echo.└──── Get unsignedTransaction thành công
 echo ==========
 echo Step 2: Get Signature
 rem Create Action File
-call certutil -decodehex _kqua.txt action >nul
+call certutil -decodehex _unsignedTransaction.txt action >nul
 echo.└── Using the previously saved password ...
 "%_cd%\planet\planet" key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_KeyID% action> _signature.txt 2>nul
 set "_signature="
@@ -1072,7 +1148,7 @@ if %errorlevel%==1 (goto :tryAutoUpgrade4)
 if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryAutoUpgrade4
 rem Find signTransaction
-echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 echo.─── Find signTransaction ...
@@ -1158,7 +1234,7 @@ timeout /t 10 /nobreak & echo.└──── Updating ... & goto:eof
 goto:eof
 :changeNode
 set /a _node+=1
-if %_node% gtr 5 (set /a _node=1)
+if %_node% gtr 3 (set /a _node=1)
 echo Node %_node% will be used
 goto:eof
 :getBlockNow
@@ -1174,10 +1250,15 @@ goto:eof
 :sendInputGraphql
 set _tempInputGraphql=%1
 set /a _tempInputGraphq2=0
+echo.Wait 6 seconds & timeout 6 >nul
 :sendInputGraphql1
 set /a _tempInputGraphq2+=1
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > %_tempInputGraphql% 2>nul
+findstr /i banned %_tempInputGraphql%>nul
+if %errorlevel% == 0 (echo.Error 2: IP was banned & echo.Wait 60 minutes ... & %_cd%\data\flashError.exe & color 4F & timeout 600 & goto :sendInputGraphql1)
+findstr /i exceeded %_tempInputGraphql%>nul
+if %errorlevel% == 0 (echo.Error 3: Node is overloaded & echo.Wait 60 seconds ... & %_cd%\data\flashError.exe & color 4F & timeout 60 & goto :sendInputGraphql1)
 findstr /i message %_tempInputGraphql%>nul
 if %_tempInputGraphq2% gtr 50 (echo.Error 1: Unknown error ... & %_cd%\data\flashError.exe & color 4F & timeout /t 600 /nobreak & goto:eof)
-if %errorlevel% == 0 (echo.Có thể node %_node% quá tải & call :changeNode & goto :sendInputGraphql1)
+if %errorlevel% == 0 (echo.Node %_node% maybe overloaded & call :changeNode & goto :sendInputGraphql1)
 goto:eof

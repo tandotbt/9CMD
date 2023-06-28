@@ -20,6 +20,7 @@ cd %_cd%\batch
 call %_cd%\batch\TaoInputJson.bat _PublicKeyCuaA %_PublicKeyCuaA% _codeStep2.txt > input1.json
 call %_cd%\batch\TaoInputJson.bat _transferAsset %_transferAsset% input1.json > input2.json
 call %_cd%\batch\TaoInputJson.bat _nextTxNonce %_nextTxNonce% input2.json > input.json
+echo Wait 10 seconds & timeout 10
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Filter the results of data

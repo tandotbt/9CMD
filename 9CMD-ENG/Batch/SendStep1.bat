@@ -33,6 +33,7 @@ call %_cd%\batch\TaoInputJson.bat _viB %_viB% input1.json > input2.json
 call %_cd%\batch\TaoInputJson.bat _soLuong %_soLuong% input2.json > input3.json
 call %_cd%\batch\TaoInputJson.bat _currency %_currency% input3.json > input4.json
 call %_cd%\batch\TaoInputJson.bat _memo %_memo%_9CMD_TooL input4.json > input.json
+echo Wait 10 seconds & timeout 10
 rem Send code to http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Filter the results of data

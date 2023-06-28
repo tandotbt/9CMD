@@ -175,14 +175,23 @@ set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\m
 if not exist %_file% (echo 0 > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\module\_autoUseAPPotionOnOff.txt)
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\module\_repeatXturn.txt"
 if not exist %_file% (echo 1 > %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingRepeat\module\_repeatXturn.txt)
+:taoLinkJsonBlod
 rem Tạo link url nơi lưu dữ liệu item từng char
 set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt"
-if exist %_file% (goto :locChar1)
+if exist %_file% (goto :ktraJsonBlob)
 echo.└────── Tạo link jsonblob.com xem vật phẩm ...
 cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
-curl -i -X "POST" -d "{}" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob --ssl-no-revoke 2>nul|findstr /i location>nul> _temp.txt 2>nul
+curl -i -X "POST" -d "[{\"image\":\"\"}]" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob --ssl-no-revoke 2>nul|findstr /i location>nul> _temp.txt 2>nul
 set /p _temp=<_temp.txt
 echo %_temp:~43,19%> _urlJson.txt 2>nul & set "_temp=" & del /q _temp.txt 2>nul
+:ktraJsonBlob
+set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
+curl -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke 2>nul|%_cd%\batch\jq -s "flatten|.[0]|has(\"image\")"|findstr /i false>nul
+if %errorlevel% == 0 (
+	del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt 2>nul
+	rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem
+	goto :taoLinkJsonBlod
+	)
 :locChar1
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\CheckItem\"
 if exist %_folder% (goto :locChar2)
@@ -2114,6 +2123,16 @@ REM if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 1: Không tìm thấy
 echo.└──── Hoàn thành bước 0
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
+echo.└── Bước 1.1: Nhận nextTxNonce ...
+echo {"query":"query{transaction{nextTxNonce(address:\"%_vi%\")}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm nextTxNonce ...
+jq -r "..|.nextTxNonce?|select(.)" output.json > _nextTxNonce.txt 2>nul
+set /p _nextTxNonce=<_nextTxNonce.txt
+echo.└──── Nhận nextTxNonce thành công
+echo.└── Bước 1.2: Nhận kqua ...
 rem Gửi thông tin của bạn tới server của tôi
 echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/refillAP --ssl-no-revoke --location> output.json 2>nul
@@ -2126,11 +2145,25 @@ if %errorlevel% equ 1 (color 4F & echo.└── Lỗi 0: Không xác định & 
 jq -r ".checkqua" output.json> _checkqua.txt 2>nul & set /p _checkqua=<_checkqua.txt
 jq -r ".kqua" output.json> _kqua.txt 2>nul & set /p _kqua=<_kqua.txt
 if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+echo.└──── Nhận kqua thành công
+echo.└── Bước 1.3: Nhận unsignedTransaction ...
+echo {"query":"query{transaction{unsignedTransaction(publicKey:\"%_publickey%\",plainValue:\"%_kqua%\",nonce:%_nextTxNonce%)}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm unsignedTransaction ...
+%_cd%\batch\jq.exe -r "..|.unsignedTransaction?|select(.)" output.json> _unsignedTransaction.txt 2>nul
+rem Nhận giá trị vượt quá 1024 kí tự
+for %%A in (_unsignedTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
+  set "_unsignedTransaction=%%B"
+  goto :fixBanned1
+)
+:fixBanned1
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
 rem Tạo file action
-call certutil -decodehex _kqua.txt action >nul
+call certutil -decodehex _unsignedTransaction.txt action >nul
 echo.└── Đang sử dụng mật khẩu đã lưu trước đó ...
 "%_cd%\planet\planet" key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_KeyID% action> _signature.txt 2>nul
 goto :KTraSignature1
@@ -2148,7 +2181,7 @@ choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :tieptucAutoRefillAP)
 if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoRefillAP
-echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
@@ -2219,6 +2252,16 @@ echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
+echo.└── Bước 1.1: Nhận nextTxNonce ...
+echo {"query":"query{transaction{nextTxNonce(address:\"%_vi%\")}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm nextTxNonce ...
+jq -r "..|.nextTxNonce?|select(.)" output.json > _nextTxNonce.txt 2>nul
+set /p _nextTxNonce=<_nextTxNonce.txt
+echo.└──── Nhận nextTxNonce thành công
+echo.└── Bước 1.2: Nhận kqua ...
 set "_temp="
 set /a _temp=%_stageSweepOrRepeat%
 if %_stageSweepOrRepeat% == 0 (set /a _temp=%_stage% 2>nul)
@@ -2247,11 +2290,25 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
 )
 :autoSweep1
 if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+echo.└──── Nhận kqua thành công
+echo.└── Bước 1.3: Nhận unsignedTransaction ...
+echo {"query":"query{transaction{unsignedTransaction(publicKey:\"%_publickey%\",plainValue:\"%_kqua%\",nonce:%_nextTxNonce%)}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm unsignedTransaction ...
+%_cd%\batch\jq.exe -r "..|.unsignedTransaction?|select(.)" output.json> _unsignedTransaction.txt 2>nul
+rem Nhận giá trị vượt quá 1024 kí tự
+for %%A in (_unsignedTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
+  set "_unsignedTransaction=%%B"
+  goto :fixBanned2
+)
+:fixBanned2
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
 rem Tạo file action
-call certutil -decodehex _kqua.txt action >nul
+call certutil -decodehex _unsignedTransaction.txt action >nul
 echo.└── Đang sử dụng mật khẩu đã lưu trước đó ...
 "%_cd%\planet\planet" key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_KeyID% action> _signature.txt 2>nul
 goto :KTraSignature2
@@ -2274,7 +2331,7 @@ choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :tieptucAutoSweep)
 if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tieptucAutoSweep
-echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
@@ -2574,6 +2631,16 @@ echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
+echo.└── Bước 1.1: Nhận nextTxNonce ...
+echo {"query":"query{transaction{nextTxNonce(address:\"%_vi%\")}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm nextTxNonce ...
+jq -r "..|.nextTxNonce?|select(.)" output.json > _nextTxNonce.txt 2>nul
+set /p _nextTxNonce=<_nextTxNonce.txt
+echo.└──── Nhận nextTxNonce thành công
+echo.└── Bước 1.2: Nhận kqua ...
 set "_temp="
 set /a _temp=%_stageSweepOrRepeat%
 if %_stageSweepOrRepeat% == 0 (set /a _temp=%_stage%+1 2>nul)
@@ -2618,11 +2685,25 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
 )
 :autoRepeat5
 if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+echo.└──── Nhận kqua thành công
+echo.└── Bước 1.3: Nhận unsignedTransaction ...
+echo {"query":"query{transaction{unsignedTransaction(publicKey:\"%_publickey%\",plainValue:\"%_kqua%\",nonce:%_nextTxNonce%)}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm unsignedTransaction ...
+%_cd%\batch\jq.exe -r "..|.unsignedTransaction?|select(.)" output.json> _unsignedTransaction.txt 2>nul
+rem Nhận giá trị vượt quá 1024 kí tự
+for %%A in (_unsignedTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
+  set "_unsignedTransaction=%%B"
+  goto :fixBanned3
+)
+:fixBanned3
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
 rem Tạo file action
-call certutil -decodehex _kqua.txt action >nul
+call certutil -decodehex _unsignedTransaction.txt action >nul
 echo.└── Đang sử dụng mật khẩu đã lưu trước đó ...
 "%_cd%\planet\planet" key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_KeyID% action> _signature.txt 2>nul
 set "_signature="
@@ -2644,7 +2725,7 @@ choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :autoRepeat7)
 if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :autoRepeat7
-echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
@@ -2887,6 +2968,16 @@ echo.└──── Hoàn thành bước 0
 rem Gửi thông tin của bạn tới server của tôi
 echo ==========
 echo Bước 1: Nhận unsignedTransaction
+echo.└── Bước 1.1: Nhận nextTxNonce ...
+echo {"query":"query{transaction{nextTxNonce(address:\"%_vi%\")}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm nextTxNonce ...
+jq -r "..|.nextTxNonce?|select(.)" output.json > _nextTxNonce.txt 2>nul
+set /p _nextTxNonce=<_nextTxNonce.txt
+echo.└──── Nhận nextTxNonce thành công
+echo.└── Bước 1.2: Nhận kqua ...
 echo {"vi":"%_vi%","publicKey":"%_publickey%","char":"%_address%","stt":%_charCount%,"premiumTX":"%_premiumTX%"}> input.json 2>nul
 curl -X POST -H "accept: application/json" -H "Content-Type: application/json" --data "@input.json" https://api.tanvpn.tk/useAPpotion --ssl-no-revoke --location> output.json 2>nul
 findstr /i Micro output.json> nul
@@ -2904,11 +2995,25 @@ for %%A in (_kqua.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
 )
 :tryAutoUseAPpotion2
 if %_checkqua% == 0 (echo.└── %_kqua% & echo.─── đợi 10p sau thử lại, ... & %_cd%\data\flashError.exe & timeout /t 600 /nobreak & echo.└──── Đang cập nhật ... & goto:eof)
+echo.└──── Nhận kqua thành công
+echo.└── Bước 1.3: Nhận unsignedTransaction ...
+echo {"query":"query{transaction{unsignedTransaction(publicKey:\"%_publickey%\",plainValue:\"%_kqua%\",nonce:%_nextTxNonce%)}}"} > input.json 2>nul
+rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
+call :sendInputGraphql output.json
+rem Lọc kết quả lấy dữ liệu
+echo.└── Tìm unsignedTransaction ...
+%_cd%\batch\jq.exe -r "..|.unsignedTransaction?|select(.)" output.json> _unsignedTransaction.txt 2>nul
+rem Nhận giá trị vượt quá 1024 kí tự
+for %%A in (_unsignedTransaction.txt) do for /f "usebackq delims=" %%B in ("%%A") do (
+  set "_unsignedTransaction=%%B"
+  goto :fixBanned4
+)
+:fixBanned4
 echo.└──── Nhận unsignedTransaction thành công
 echo ==========
 echo Bước 2: Nhận Signature
 rem Tạo file action
-call certutil -decodehex _kqua.txt action >nul
+call certutil -decodehex _unsignedTransaction.txt action >nul
 echo.└── Đang sử dụng mật khẩu đã lưu trước đó ...
 "%_cd%\planet\planet" key sign --passphrase %_PASSWORD% --store-path %_cd%\user\utc %_KeyID% action> _signature.txt 2>nul
 set "_signature="
@@ -2929,7 +3034,7 @@ choice /c 12 /n /t 10 /d 1 /m "Nhập từ bàn phím: "
 if %errorlevel%==1 (goto :tryAutoUseAPpotion4)
 if %errorlevel%==2 (set /a _canAutoOnOff=0 & goto:eof)
 :tryAutoUseAPpotion4
-echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_kqua%\",signature:\"%_signature%\")}}"}> input.json 2>nul
+echo {"query":"query{transaction{signTransaction(unsignedTransaction:\"%_unsignedTransaction%\",signature:\"%_signature%\")}}"}> input.json 2>nul
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 call :sendInputGraphql output.json
 echo.└── Tìm signTransaction ...
@@ -2983,7 +3088,7 @@ if %_countKtraAuto% geq 4 (color 4F & echo.─── Lỗi 2.2: Lỗi không xá
 goto:eof
 :changeNode
 set /a _node+=1
-if %_node% gtr 5 (set /a _node=1)
+if %_node% gtr 3 (set /a _node=1)
 echo Node %_node% sẽ được sử dụng
 goto:eof
 :getBlockNow
@@ -3001,7 +3106,12 @@ set _tempInputGraphql=%1
 set /a _tempInputGraphq2=0
 :sendInputGraphql1
 set /a _tempInputGraphq2+=1
+echo.Chờ 6 giây & timeout 6 >nul
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > %_tempInputGraphql% 2>nul
+findstr /i banned %_tempInputGraphql%>nul
+if %errorlevel% == 0 (echo.Lỗi 2: Ip đã bị banned & echo.Đợi 60 phút ... & %_cd%\data\flashError.exe & color 4F & timeout 600 & goto :sendInputGraphql1)
+findstr /i exceeded %_tempInputGraphql%>nul
+if %errorlevel% == 0 (echo.Lỗi 3: Node quá tải & echo.Đợi 60 giây ... & %_cd%\data\flashError.exe & color 4F & timeout 60 & goto :sendInputGraphql1)
 findstr /i message %_tempInputGraphql%>nul
 if %_tempInputGraphq2% gtr 50 (echo.Lỗi 1: Lỗi không xác định ... & %_cd%\data\flashError.exe & color 4F & timeout /t 600 /nobreak & goto:eof)
 if %errorlevel% == 0 (echo.Có thể node %_node% quá tải & call :changeNode & goto :sendInputGraphql1)

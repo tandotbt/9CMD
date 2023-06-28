@@ -29,6 +29,7 @@ if "%_ktra%"=="0" (timeout 1 & exit /b) else (set /a _ktra=0 & echo Lỗi 3: Nod
 :KTraNode
 cd %_cd%\batch
 echo {"query":"query{nodeStatus{preloadEnded}}"} > input.json
+echo Chờ 10 giây & timeout 10
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > %_cd%/data/_KTraNode.txt
 rem Xóa file nháp input và output

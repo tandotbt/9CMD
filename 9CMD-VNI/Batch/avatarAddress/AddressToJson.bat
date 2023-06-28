@@ -29,6 +29,7 @@ set /a _ncg=0 & set /a _crystal=0
 cd %_cd%\batch
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_vi:~0,42%\"){crystal}}goldBalance(address: \"%_vi:~0,42%\" )}"} > input.json
+echo Chờ 10 giây & timeout 10
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Lọc kết quả lấy dữ liệu

@@ -21,6 +21,7 @@ set _viB=%_viB: =%
 echo %_viB% > %_cd%\user\_viB.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viB%\"){crystal}}goldBalance(address: \"%_viB%\" )}"} > input.json
+echo Chờ 10 giây & timeout 10
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 findstr /i errors output.json>nul
@@ -54,6 +55,7 @@ set /p _viB="Nhập ví B: "
 echo %_viB% > %_cd%\user\_viB.txt
 rem Kiểm tra số dư
 echo {"query":"query{stateQuery{agent(address:\"%_viB%\"){crystal}}goldBalance(address: \"%_viB%\" )}"} > input.json
+echo Chờ 10 giây & timeout 10
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Lọc kết quả lấy dữ liệu

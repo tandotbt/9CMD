@@ -14,6 +14,7 @@ set _stageTransaction=%_stageTransaction: =%
 rem Gán biến vào code
 cd %_cd%\batch
 call %_cd%\batch\TaoInputJson.bat _stageTransaction %_stageTransaction% _codeStep5.txt > input.json
+echo Chờ 10 giây & timeout 10
 rem Gửi code đến http://9c-main-rpc-%_node%.nine-chronicles.com/graphql
 curl --header "Content-Type: application/json" --data "@input.json" --show-error http://9c-main-rpc-%_node%.nine-chronicles.com/graphql > output.json
 rem Lọc kết quả lấy dữ liệu
