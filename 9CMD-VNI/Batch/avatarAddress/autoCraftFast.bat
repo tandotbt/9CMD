@@ -109,19 +109,19 @@ set /p _crystal=<_crystal.txt
 set /a _crystal=%_crystal% 2>nul
 :taoLinkJsonBlod
 rem Tạo link url nơi lưu dữ liệu item từng char
-set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt"
+set _file="%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingSweep\_urlJson.txt"
 if exist %_file% (goto :ktraJsonBlob)
 echo.───── Tạo link jsonblob.com xem vật phẩm ...
-cd %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep
+cd %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingSweep
 curl -i -X "POST" -d "[{\"image\":\"\"}]" -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob --ssl-no-revoke 2>nul|findstr /i location>nul> _temp.txt 2>nul
 set /p _temp=<_temp.txt
 echo %_temp:~43,19%> _urlJson.txt 2>nul & set "_temp=" & del /q _temp.txt 2>nul
 :ktraJsonBlob
-set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt
+set /p _urlJson=<%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingSweep\_urlJson.txt
 curl -H "Content-Type: application/json" -H "Accept: application/json" https://jsonblob.com/api/jsonBlob/%_urlJson% --ssl-no-revoke 2>nul|%_cd%\batch\jq -s "flatten|.[0]|has(\"image\")"|findstr /i false>nul
 if %errorlevel% == 0 (
-	del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingSweep\_urlJson.txt 2>nul
-	rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_charCount%\settingCraft\CheckItem
+	del /q %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingSweep\_urlJson.txt 2>nul
+	rd /s /q %_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\CheckItem
 	goto :taoLinkJsonBlod
 	)
 set _folder="%_cd%\user\trackedAvatar\%_folderVi%\char%_countChar%\settingCraft\CheckItem\"
