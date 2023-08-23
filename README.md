@@ -1,7 +1,7 @@
 # 9CDM -VNI
 TOoL cHo CHín cÊ
 
-User Guide for 9CMD: https://9cmd.tanvpn.tk/
+User Guide for 9CMD: https://tan-dot-bt.gitbook.io/9cmd/
 ==========
 
 Tạm dừng dự án do chán chán :vv
